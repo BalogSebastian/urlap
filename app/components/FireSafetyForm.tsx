@@ -4,20 +4,20 @@ import React, { useState } from "react";
 
 export default function FireSafetyForm() {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // --- MENTÉS LOGIKA ---
-  const handleSubmit = (e: React.FormEvent) => {
+  // --- MENTÉS LOGIKA (POST API) ---
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    // 1. Adatok kinyerése
+    // Adatok kinyerése
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
     const data: any = {};
     
-    // Checkboxok kezelése trükkös, mert ha nincs bepipálva, nem küld értéket,
-    // de itt most szövegesen gyűjtjük be őket.
+    // Checkboxok kezelése (összefűzés, ha több azonos nevű van)
     formData.forEach((value, key) => {
-      // Ha már létezik a kulcs (pl. checkbox array), összefűzzük
       if (data[key]) {
         data[key] = data[key] + ", " + value;
       } else {
@@ -25,26 +25,32 @@ export default function FireSafetyForm() {
       }
     });
 
-    // Technikai adatok hozzáadása
-    data.submittedAt = new Date().toLocaleString("hu-HU");
-    data.id = Date.now().toString();
+    try {
+        // API hívás a MongoDB-hez
+        const res = await fetch("/api/submissions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+        });
 
-    // 2. Mentés LocalStorage-ba (Adatbázis szimuláció)
-    const existingSubmissions = JSON.parse(localStorage.getItem("fireSafetySubmissions") || "[]");
-    existingSubmissions.push(data);
-    localStorage.setItem("fireSafetySubmissions", JSON.stringify(existingSubmissions));
-
-    // 3. UI Visszajelzés
-    setIsSubmitted(true);
-    form.reset();
-    
-    // Visszagörgetés és üzenet eltüntetése
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => setIsSubmitted(false), 5000);
+        if (res.ok) {
+            setIsSubmitted(true);
+            form.reset();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => setIsSubmitted(false), 5000); // 5 mp után eltűnik az üzenet
+        } else {
+            alert("Hiba történt a mentés során. Próbálja újra!");
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Szerver hiba. Ellenőrizze az internetkapcsolatot.");
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto my-12 relative">
+    <div className="w-full max-w-5xl mx-auto my-6 relative">
       
       {/* SIKERES MENTÉS ÜZENET (LEBEGŐ) */}
       {isSubmitted && (
@@ -55,24 +61,24 @@ export default function FireSafetyForm() {
                 </div>
                 <div>
                     <h4 className="font-bold text-lg">Sikeres mentés!</h4>
-                    <p className="text-green-100 text-sm">Az adatlapot továbbítottuk az adminisztrátornak.</p>
+                    <p className="text-green-100 text-sm">Az adatlapot továbbítottuk a rendszerbe.</p>
                 </div>
             </div>
         </div>
       )}
 
-      {/* --- Látványos Fejléc --- */}
-      <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden mb-10 border border-slate-100">
+      {/* --- Fejléc --- */}
+      <div className="relative bg-white rounded-3xl shadow-xl overflow-hidden mb-10 border border-slate-100">
         <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-indigo-50 rounded-full blur-3xl opacity-60"></div>
         <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-64 h-64 bg-orange-50 rounded-full blur-3xl opacity-60"></div>
         
-        <div className="relative z-10 p-8 sm:p-14 text-center">
+        <div className="relative z-10 p-8 sm:p-12 text-center">
           <div className="inline-flex items-center justify-center p-3 bg-orange-100 text-orange-600 rounded-2xl mb-6 shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.115.385-2.256 1.036-3.286"/>
             </svg>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 mb-4">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-4">
             Tűzvédelmi Adatlap
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
@@ -89,15 +95,15 @@ export default function FireSafetyForm() {
         {/* 1. Cég- és telephelyadatok */}
         <Section number="01" title="Cég- és telephelyadatok" description="A vállalkozás alapvető azonosító adatai és a helyszín.">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputGroup label="Cég neve" name="companyName" placeholder="pl. Minta Kft." icon={<BuildingIcon />} fullWidth />
-            <InputGroup label="Székhely" name="headquarters" placeholder="1111 Budapest..." icon={<MapPinIcon />} />
-            <InputGroup label="Telephely címe" name="siteAddress" placeholder="Ahová az anyag készül" icon={<MapPinIcon />} />
+            <InputGroup label="Cég neve" name="companyName" placeholder="pl. Minta Kft." fullWidth required />
+            <InputGroup label="Székhely" name="headquarters" placeholder="1111 Budapest..." required />
+            <InputGroup label="Telephely címe" name="siteAddress" placeholder="Ahová az anyag készül" required />
           </div>
         </Section>
 
         {/* 2. Rendeltetés */}
         <Section number="02" title="Rendeltetés, tevékenység" description="A végzett tevékenység jellege és kockázatai.">
-          <InputGroup label="A telephely fő tevékenysége" name="mainActivity" placeholder="pl. virágbolt, iroda..." fullWidth />
+          <InputGroup label="A telephely fő tevékenysége" name="mainActivity" placeholder="pl. virágbolt, iroda..." fullWidth required />
           
           <div className="pt-6">
             <Label>Van-e a speciális technológia? (pl. hegesztés)</Label>
@@ -150,7 +156,7 @@ export default function FireSafetyForm() {
                 </div>
              </div>
              <div>
-                <InputGroup label="Hasznos alapterület (m²)" name="areaSize" type="number" placeholder="pl. 120" icon={<RulerIcon />} fullWidth />
+                <InputGroup label="Hasznos alapterület (m²)" name="areaSize" type="number" placeholder="pl. 120" fullWidth />
              </div>
           </div>
         </Section>
@@ -179,6 +185,25 @@ export default function FireSafetyForm() {
             </div>
           </div>
           
+           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-10 pt-6 border-t border-dashed border-gray-200">
+               <div>
+                   <Label>Tető jellege</Label>
+                   <div className="mt-2 space-y-2">
+                       <RadioSimple name="roofType" value="flat" label="Lapos tető" />
+                       <RadioSimple name="roofType" value="pitched" label="Magastető" />
+                   </div>
+               </div>
+               <div>
+                   <Label>Tető fedése</Label>
+                   <div className="mt-2 space-y-2">
+                       <RadioSimple name="roofCover" value="tile" label="Cserép" />
+                       <RadioSimple name="roofCover" value="sheet" label="Lemez" />
+                       <RadioSimple name="roofCover" value="shingle" label="Zsindely" />
+                       <RadioSimple name="roofCover" value="panel" label="Szendvicspanel" />
+                   </div>
+               </div>
+           </div>
+
           <div className="mt-8 border-t border-dashed border-gray-200 pt-6">
              <Label>Van külső hőszigetelés (dryvit)?</Label>
              <div className="flex gap-4 mt-3">
@@ -232,6 +257,17 @@ export default function FireSafetyForm() {
              </div>
            </div>
            
+           <div className="mt-8 border-t border-dashed border-gray-200 pt-6">
+              <Label>Van alternatív menekülési irány?</Label>
+               <div className="flex flex-col sm:flex-row gap-4 mt-3">
+                  <RadioSimple name="altExit" value="no" label="Nincs" />
+                  <div className="flex items-center gap-2">
+                    <RadioSimple name="altExit" value="yes" label="Van, ajtó szélessége:" />
+                    <input type="text" name="altExitWidth" className="w-20 border-b border-gray-300 focus:border-indigo-600 outline-none" placeholder="cm" />
+                  </div>
+               </div>
+           </div>
+
            <div className="mt-8">
               <Label>Legnagyobb menekülési távolság (a legtávolabbi saroktól)</Label>
               <div className="flex flex-col sm:flex-row gap-4 mt-3">
@@ -252,6 +288,17 @@ export default function FireSafetyForm() {
               <CheckboxCard name="mat_gas" label="Gázpalack (PB, CO2)" />
               <CheckboxCard name="mat_aero" label="Nagyobb mennyiségű aeroszol" />
            </div>
+           
+           <div className="mt-6 pt-6 border-t border-dashed border-gray-200">
+               <Label>Van külön raktárhelyiség?</Label>
+               <div className="flex flex-col sm:flex-row gap-4 mt-3">
+                  <RadioSimple name="storageRoom" value="no" label="Nincs" />
+                  <div className="flex items-center gap-2">
+                    <RadioSimple name="storageRoom" value="yes" label="Van, területe:" />
+                    <input type="number" name="storageSize" className="w-24 border-b border-gray-300 focus:border-indigo-600 outline-none" placeholder="m2" />
+                  </div>
+               </div>
+           </div>
         </Section>
 
         {/* 8. Tűzoltó készülékek */}
@@ -270,18 +317,17 @@ export default function FireSafetyForm() {
                    </select>
                 </div>
                 <div className="flex-1 w-full">
-                   <Label>Érvényes matrica?</Label>
-                   <div className="flex gap-4 mt-2">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                         <input type="radio" name="valid" value="yes" className="text-green-600 focus:ring-green-500" />
-                         <span className="text-sm">Igen</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                         <input type="radio" name="valid" value="no" className="text-red-600 focus:ring-red-500" />
-                         <span className="text-sm">Nem</span>
-                      </label>
-                   </div>
+                   <Label>Helye</Label>
+                   <input type="text" name="extLocation" className="mt-1 block w-full rounded-lg border-gray-300 py-2.5 px-3 border" placeholder="pl. bejárat" />
                 </div>
+             </div>
+             <div className="mt-4 pt-4 border-t border-gray-200">
+                 <Label>Érvényes matrica (1 éven belüli)?</Label>
+                 <div className="flex gap-4 mt-2">
+                      <RadioSimple name="valid" value="yes" label="Igen" />
+                      <RadioSimple name="valid" value="no" label="Nem" />
+                      <RadioSimple name="valid" value="unknown" label="Nem tudom" />
+                 </div>
              </div>
            </div>
         </Section>
@@ -294,33 +340,85 @@ export default function FireSafetyForm() {
               <CheckboxCard name="sys_manual" label="Kézi jelzésadók (gombok)" />
               <CheckboxCard name="sys_none" label="Nincs ilyen rendszer" />
            </div>
+           <div className="mt-4">
+               <InputGroup label="Ha van, hol található?" name="systemLocation" placeholder="Rövid leírás..." fullWidth />
+           </div>
         </Section>
 
-        {/* 10-12. Vegyes adatok */}
+        {/* 10-11. Vegyes adatok */}
         <Section number="10" title="Gépészet és Villámvédelem" description="Villamos, gáz és védelmi rendszerek.">
            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                  <Label>Villamos főkapcsoló helye</Label>
-                 <input type="text" name="mainSwitch" className="mt-2 block w-full rounded-lg border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="pl. bejárat mellett" />
+                 <input type="text" name="mainSwitch" className="mt-2 block w-full rounded-lg border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border" placeholder="pl. bejárat mellett" />
               </div>
               <div>
                  <Label>Gáz főelzáró helye</Label>
-                 <input type="text" name="gasValve" className="mt-2 block w-full rounded-lg border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="ha van gáz..." />
+                 <div className="flex flex-col gap-2 mt-2">
+                     <RadioSimple name="gasValve" value="no" label="Nincs gáz" />
+                     <div className="flex items-center gap-2">
+                        <RadioSimple name="gasValve" value="yes" label="Van:" />
+                        <input type="text" name="gasLocation" className="flex-1 border-b border-gray-300 focus:border-indigo-600 outline-none text-sm" placeholder="hol?" />
+                     </div>
+                 </div>
               </div>
            </div>
            
            <div className="mt-6 pt-6 border-t border-gray-100">
-              <Label>Van külső villámvédelem?</Label>
-              <div className="flex gap-4 mt-3">
-                 <SelectableCard name="lightning" value="yes" label="Igen" />
-                 <SelectableCard name="lightning" value="no" label="Nem" />
-                 <SelectableCard name="lightning" value="dk" label="Nem tudom" />
+              <Label>Kazán / Hőtermelő?</Label>
+               <div className="flex flex-col sm:flex-row gap-4 mt-2">
+                  <RadioSimple name="boiler" value="no" label="Nincs" />
+                  <div className="flex items-center gap-2">
+                    <RadioSimple name="boiler" value="yes" label="Van, típus:" />
+                    <input type="text" name="boilerDesc" className="w-32 border-b border-gray-300 focus:border-indigo-600 outline-none" />
+                  </div>
+               </div>
+           </div>
+
+           <div className="mt-6 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                  <Label>Van külső villámvédelem?</Label>
+                  <div className="flex gap-4 mt-3">
+                     <RadioSimple name="lightning" value="yes" label="Igen" />
+                     <RadioSimple name="lightning" value="no" label="Nem" />
+                     <RadioSimple name="lightning" value="dk" label="Nem tudom" />
+                  </div>
+              </div>
+              <div className="space-y-3">
+                  <div>
+                      <Label>Érintésvédelmi JKV?</Label>
+                      <div className="flex gap-3"><RadioSimple name="shockProt" value="yes" label="Van" /><RadioSimple name="shockProt" value="no" label="Nincs" /></div>
+                  </div>
+                  <div>
+                      <Label>Villámvédelmi JKV?</Label>
+                      <div className="flex gap-3"><RadioSimple name="lightningDoc" value="yes" label="Van" /><RadioSimple name="lightningDoc" value="no" label="Nincs" /></div>
+                  </div>
               </div>
            </div>
         </Section>
 
+        {/* 12. Hulladék */}
+        <Section number="11" title="Hulladékkezelés" description="Tárolás rendje.">
+             <Label>Hol tárolják a hulladékot?</Label>
+             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                 <SelectableCard name="waste" value="inside" label="Épületen belül (közl.)" />
+                 <SelectableCard name="waste" value="room" label="Külön helyiségben" />
+                 <SelectableCard name="waste" value="outside" label="Udvaron / Kint" />
+             </div>
+             <div className="mt-4">
+                 <InputGroup label="Rövid leírás" name="wasteDesc" placeholder="..." fullWidth />
+             </div>
+             <div className="mt-4 pt-4 border-t border-dashed border-gray-200">
+                 <Label>Előfordul tárolás menekülési útvonalon?</Label>
+                 <div className="flex gap-4 mt-2">
+                     <RadioSimple name="wasteRoute" value="no" label="Nem" />
+                     <RadioSimple name="wasteRoute" value="yes" label="Igen, néha" />
+                 </div>
+             </div>
+        </Section>
+
         {/* 13. Egyéb */}
-        <Section number="11" title="Megjegyzés" description="Bármi egyéb fontos információ.">
+        <Section number="12" title="Megjegyzés" description="Bármi egyéb fontos információ.">
            <textarea 
              name="notes"
              className="w-full p-4 border border-gray-300 rounded-xl shadow-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 min-h-[120px] transition-all"
@@ -330,14 +428,14 @@ export default function FireSafetyForm() {
 
         {/* Submit Gomb */}
         <div className="pt-4 pb-12">
-           <button type="submit" className="group relative w-full flex justify-center py-5 px-4 border border-transparent text-lg font-bold rounded-2xl text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg shadow-indigo-200 transform transition-all active:scale-[0.99] overflow-hidden">
+           <button type="submit" disabled={loading} className="group relative w-full flex justify-center py-5 px-4 border border-transparent text-lg font-bold rounded-2xl text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg shadow-indigo-200 transform transition-all active:scale-[0.99] overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed">
              <div className="absolute inset-0 w-full h-full bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-in-out -translate-x-full"></div>
              <span className="relative flex items-center gap-3">
-               Adatlap Beküldése
-               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+               {loading ? "Mentés folyamatban..." : "Adatlap Beküldése"}
+               {!loading && <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>}
              </span>
            </button>
-           <p className="text-center text-sm text-slate-400 mt-4">A gomb megnyomásával az adatok mentésre kerülnek.</p>
+           <p className="text-center text-sm text-slate-400 mt-4">A gomb megnyomásával az adatok központilag mentésre kerülnek.</p>
         </div>
 
       </form>
@@ -368,23 +466,17 @@ function Label({ children }: { children: React.ReactNode }) {
   return <label className="block text-sm font-semibold text-slate-700 mb-2">{children}</label>;
 }
 
-function InputGroup({ label, name, type = "text", placeholder, icon, fullWidth }: any) {
+function InputGroup({ label, name, type = "text", placeholder, fullWidth, required }: any) {
   return (
     <div className={fullWidth ? "w-full" : ""}>
-      <Label>{label}</Label>
-      <div className="relative rounded-lg shadow-sm">
-        {icon && (
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <span className="text-gray-400 scale-75">{icon}</span>
-          </div>
-        )}
-        <input 
-          type={type} 
-          name={name} 
-          placeholder={placeholder}
-          className={`block w-full rounded-lg border-gray-200 bg-slate-50 focus:bg-white text-slate-800 py-3 ${icon ? 'pl-10' : 'pl-4'} focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all sm:text-sm`}
-        />
-      </div>
+      <Label>{label} {required && <span className="text-red-500">*</span>}</Label>
+      <input 
+        type={type} 
+        name={name} 
+        required={required}
+        placeholder={placeholder}
+        className="block w-full rounded-lg border-gray-200 bg-slate-50 focus:bg-white text-slate-800 py-3 pl-4 border focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all sm:text-sm"
+      />
     </div>
   );
 }
@@ -398,7 +490,7 @@ function SelectableCard({ name, value, label, children }: any) {
         {children}
       </div>
       <div className="absolute top-4 right-4 hidden has-[:checked]:block text-indigo-600">
-        <CheckCircleIcon />
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
       </div>
     </label>
   );
@@ -424,8 +516,3 @@ function RadioSimple({ name, value, label }: any) {
         </label>
     );
 }
-
-const BuildingIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="12" y1="22" x2="12" y2="22.01"></line><line x1="12" y1="2" x2="12" y2="22"></line><line x1="4" y1="10" x2="20" y2="10"></line><line x1="4" y1="14" x2="20" y2="14"></line><line x1="4" y1="18" x2="20" y2="18"></line></svg>;
-const MapPinIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
-const RulerIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12h20"></path><path d="M2 12v3a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3v-3"></path><path d="M2 9v3"></path><path d="M22 9v3"></path><path d="M5 9v3"></path><path d="M9 9v3"></path><path d="M13 9v3"></path><path d="M17 9v3"></path></svg>;
-const CheckCircleIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
