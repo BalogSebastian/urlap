@@ -10,11 +10,11 @@ export default function AdminPage() {
   
   const [submissions, setSubmissions] = useState<any[]>([]);
   
-  // Állapotok a modálokhoz (ablakokhoz)
-  const [previewItem, setPreviewItem] = useState<any>(null); // Ha ez nem null, akkor megnyílik az előnézet
-  const [editItem, setEditItem] = useState<any>(null);       // Ha ez nem null, akkor megnyílik a szerkesztő
+  // Állapotok a modálokhoz
+  const [previewItem, setPreviewItem] = useState<any>(null);
+  const [editItem, setEditItem] = useState<any>(null);
 
-  // Betöltés
+  // --- BETÖLTÉS ---
   useEffect(() => {
     const data = localStorage.getItem("fireSafetySubmissions");
     if (data) {
@@ -22,8 +22,7 @@ export default function AdminPage() {
     }
   }, []);
 
-  // --- MŰVELETEK ---
-
+  // --- ADMIN MŰVELETEK ---
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (username === "admin" && password === "admin") {
@@ -34,7 +33,7 @@ export default function AdminPage() {
   };
 
   const deleteSubmission = (id: string) => {
-    if (confirm("Valóban törölni szeretné ezt a beküldést?")) {
+    if (confirm("Biztosan törölni szeretné ezt az adatlapot?")) {
       const updated = submissions.filter((s) => s.id !== id);
       setSubmissions(updated);
       localStorage.setItem("fireSafetySubmissions", JSON.stringify(updated));
@@ -42,21 +41,18 @@ export default function AdminPage() {
   };
 
   const saveEdit = () => {
-    // Megkeressük az eredetit és kicseréljük a szerkesztettre
     const updatedList = submissions.map((s) => (s.id === editItem.id ? editItem : s));
     setSubmissions(updatedList);
     localStorage.setItem("fireSafetySubmissions", JSON.stringify(updatedList));
-    setEditItem(null); // Bezárjuk az ablakot
-    alert("Sikeres mentés!");
+    setEditItem(null);
+    alert("Adatok sikeresen frissítve!");
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setEditItem({ ...editItem, [e.target.name]: e.target.value });
   };
 
-  // --- PDF GENERÁTOR (Ugyanaz, mint eddig, csak a tr() függvényt kiemeltem) ---
-  
-  // Magyarosító segédfüggvény (ezt használjuk a HTML előnézetben is!)
+  // --- PDF & FORDÍTÓ LOGIKA ---
   const tr = (val: string) => {
     const map: any = {
         'brick': 'Tégla', 'concrete': 'Beton/Panel', 'steel': 'Acél', 'light': 'Könnyűszerk.', 'unknown': 'Nem tudom',
@@ -74,7 +70,6 @@ export default function AdminPage() {
   const generatePDF = (data: any) => {
     const doc = new jsPDF();
     
-    // Fejléc
     doc.setFontSize(22);
     doc.setTextColor(30, 41, 59);
     doc.text("Tűzvédelmi Adatlap", 20, 20);
@@ -111,7 +106,7 @@ export default function AdminPage() {
         y += (splitText.length * 6) + 2;
     };
 
-    // Adatok beírása (ugyanaz a logika, mint az előző verzióban)
+    // --- PDF TARTALOM ÖSSZEÁLLÍTÁSA ---
     addSection("1. Cég- és Telephelyadatok");
     addLine("Cég neve", data.companyName);
     addLine("Székhely", data.headquarters);
@@ -141,7 +136,6 @@ export default function AdminPage() {
     addLine("Ügyfelek (átlag)", `${data.clientsAvg || '0'} fő`);
     addLine("Ügyfelek (max)", `${data.clientsMax || '0'} fő`);
     addLine("Segítségre szorul", data.disabled === 'yes' ? (data.disabledDesc || 'Van') : 'Nincs');
-    
     addLine("Kijáratok száma", `${data.exits} db`);
     addLine("Főajtó szélesség", `${data.doorWidth} cm`);
     addLine("Menekülési út", data.distM ? `${data.distM} méter` : `${data.distStep} lépés`);
@@ -149,7 +143,7 @@ export default function AdminPage() {
     addSection("7. Tűzveszélyes Anyagok");
     const materials = [data.mat_paper, data.mat_clean, data.mat_paint, data.mat_fuel, data.mat_gas, data.mat_aero].filter(Boolean).join(", ");
     addLine("Jellemző anyagok", materials || "Nincs megjelölve");
-    addLine("Külön raktár", data.storageRoom === 'yes' ? `${data.storageSize} m²` : 'Nincs');
+    addLine("Külön raktár", data.storageRoom === 'yes' ? "Van" : 'Nincs');
 
     addSection("8. Tűzoltó Készülékek");
     addLine("Darabszám", `${data.extCount || '0'} db`);
@@ -164,8 +158,7 @@ export default function AdminPage() {
 
     addSection("10. Gépészet & Villámvédelem");
     addLine("Villamos főkapcs.", data.mainSwitch);
-    addLine("Gáz főelzáró", data.gasValve === 'yes' ? (data.gasLocation || 'Van') : 'Nincs');
-    addLine("Kazán/Hőtermelő", data.boiler === 'yes' ? (data.boilerDesc || 'Van') : 'Nincs');
+    addLine("Gáz főelzáró", data.gasValve);
     addLine("Külső villámvéd.", tr(data.lightning));
     addLine("Érintésvéd. Jkv.", tr(data.shockProt));
     addLine("Villámvéd. Jkv.", tr(data.lightningDoc));
@@ -181,7 +174,7 @@ export default function AdminPage() {
     doc.save(`tuzvedelem_${cleanName}.pdf`);
   };
 
-  // --- LOGIN KÉPERNYŐ ---
+  // --- LOGIN NÉZET ---
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -200,9 +193,9 @@ export default function AdminPage() {
     );
   }
 
-  // --- ADMIN DASHBOARD ---
+  // --- DASHBOARD NÉZET ---
   return (
-    <div className="min-h-screen bg-slate-50 relative">
+    <div className="min-h-screen bg-slate-50">
       <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
         <div className="flex items-center gap-2">
             <span className="bg-indigo-600 text-white p-1.5 rounded-lg font-bold text-sm">TV</span>
@@ -222,30 +215,18 @@ export default function AdminPage() {
                         <p className="text-slate-500 text-sm mt-1">{sub.siteAddress} • {sub.submittedAt}</p>
                     </div>
                     
-                    {/* GOMBOK SORA */}
                     <div className="flex flex-wrap gap-2 justify-end">
-                        
-                        {/* 1. ELŐNÉZET GOMB */}
                         <button onClick={() => setPreviewItem(sub)} className="bg-blue-50 text-blue-600 hover:bg-blue-100 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                            Előnézet
+                             👁️ Előnézet
                         </button>
-
-                        {/* 2. SZERKESZTÉS GOMB */}
                         <button onClick={() => setEditItem(sub)} className="bg-yellow-50 text-yellow-600 hover:bg-yellow-100 px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 00 2 2h11a2 2 0 00 2-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                            Szerkeszt
+                             ✏️ Szerkesztés
                         </button>
-
-                        {/* 3. PDF GOMB */}
                         <button onClick={() => generatePDF(sub)} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-md transition-colors flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            PDF
+                             📄 PDF
                         </button>
-
-                        {/* 4. TÖRLÉS GOMB */}
-                        <button onClick={() => deleteSubmission(sub.id)} className="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors" title="Törlés">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a2 2 0 00-1-1h-4a2 2 0 00-1 1v3M4 7h16"></path></svg>
+                        <button onClick={() => deleteSubmission(sub.id)} className="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition-colors">
+                             🗑️
                         </button>
                     </div>
                 </div>
@@ -254,78 +235,146 @@ export default function AdminPage() {
         </div>
       </main>
 
-      {/* --- ELŐNÉZET MODAL (ABLAK) --- */}
+      {/* --- ELŐNÉZET MODAL (TELJES) --- */}
       {previewItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setPreviewItem(null)}>
            <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl" onClick={e => e.stopPropagation()}>
-              <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex justify-between items-center">
+              <div className="sticky top-0 bg-white border-b border-slate-100 p-5 flex justify-between items-center z-10">
                  <h2 className="text-xl font-bold text-slate-800">Adatlap Előnézet</h2>
                  <button onClick={() => setPreviewItem(null)} className="p-2 hover:bg-slate-100 rounded-full">✕</button>
               </div>
-              <div className="p-6 md:p-10 space-y-6 text-slate-800">
-                 {/* Itt jelenítjük meg az adatokat struktúráltan */}
+              
+              <div className="p-6 md:p-10 space-y-8 text-slate-800">
                  <PreviewSection title="1. Cégadatok">
                     <PreviewRow label="Cég neve" value={previewItem.companyName} />
                     <PreviewRow label="Székhely" value={previewItem.headquarters} />
-                    <PreviewRow label="Telephely címe" value={previewItem.siteAddress} />
+                    <PreviewRow label="Telephely" value={previewItem.siteAddress} />
                  </PreviewSection>
                  
                  <PreviewSection title="2. Tevékenység">
                     <PreviewRow label="Fő tevékenység" value={previewItem.mainActivity} />
-                    <PreviewRow label="Jelleg" value={[previewItem.type_shop, previewItem.type_office, previewItem.type_warehouse].filter(Boolean).join(", ")} />
+                    <PreviewRow label="Spec. Tech." value={previewItem.specialTech === 'yes' ? previewItem.specialTechDesc : "Nincs"} />
+                    <PreviewRow label="Jelleg" value={[previewItem.type_shop, previewItem.type_office, previewItem.type_warehouse, previewItem.type_workshop, previewItem.type_social].filter(Boolean).join(", ")} />
                  </PreviewSection>
 
                  <PreviewSection title="3-4. Épület és Szerkezet">
-                    <PreviewRow label="Épület típus" value={tr(previewItem.buildingType)} />
-                    <PreviewRow label="Falazat" value={tr(previewItem.walls)} />
+                    <PreviewRow label="Típus" value={tr(previewItem.buildingType)} />
+                    <PreviewRow label="Emelet" value={previewItem.floorNumber} />
+                    <PreviewRow label="Megközelítés" value={tr(previewItem.access)} />
+                    <PreviewRow label="Terület" value={`${previewItem.areaSize} m²`} />
+                    <PreviewRow label="Falak" value={tr(previewItem.walls)} />
                     <PreviewRow label="Födém" value={tr(previewItem.ceiling)} />
                     <PreviewRow label="Tető" value={`${tr(previewItem.roofType)} / ${tr(previewItem.roofCover)}`} />
+                    <PreviewRow label="Szigetelés" value={tr(previewItem.insulation)} />
                  </PreviewSection>
 
-                 <PreviewSection title="Technikai adatok">
-                    <PreviewRow label="Oltókészülékek" value={`${previewItem.extCount} db (${previewItem.extType})`} />
-                    <PreviewRow label="Főkapcsoló" value={previewItem.mainSwitch} />
-                    <PreviewRow label="Villámvédelem" value={tr(previewItem.lightning)} />
-                    <PreviewRow label="Megjegyzés" value={previewItem.notes} />
+                 <PreviewSection title="5-6. Létszám és Menekülés">
+                    <PreviewRow label="Dolgozók" value={previewItem.employees} />
+                    <PreviewRow label="Ügyfelek" value={previewItem.clientsMax} />
+                    <PreviewRow label="Segítségre szorul" value={previewItem.disabled === 'yes' ? previewItem.disabledDesc : "Nincs"} />
+                    <PreviewRow label="Kijáratok" value={previewItem.exits} />
+                    <PreviewRow label="Ajtó szélesség" value={`${previewItem.doorWidth} cm`} />
+                    <PreviewRow label="Távolság" value={previewItem.distM ? `${previewItem.distM} m` : `${previewItem.distStep} lépés`} />
                  </PreviewSection>
-              </div>
-              <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
-                 <button onClick={() => generatePDF(previewItem)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold">PDF Letöltés innen</button>
-                 <button onClick={() => setPreviewItem(null)} className="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold">Bezárás</button>
+
+                 <PreviewSection title="7-8. Anyagok és Eszközök">
+                    <PreviewRow label="Anyagok" value={[previewItem.mat_paper, previewItem.mat_clean, previewItem.mat_paint, previewItem.mat_fuel, previewItem.mat_gas].filter(Boolean).join(", ")} />
+                    <PreviewRow label="Külön raktár" value={previewItem.storageRoom === 'yes' ? "Van" : "Nincs"} />
+                    <PreviewRow label="Oltókészülék" value={`${previewItem.extCount} db (${previewItem.extType})`} />
+                    <PreviewRow label="Elhelyezés" value={previewItem.extLocation} />
+                    <PreviewRow label="Matrica" value={tr(previewItem.valid)} />
+                 </PreviewSection>
+
+                 <PreviewSection title="9-11. Rendszerek és Gépészet">
+                     <PreviewRow label="Rendszerek" value={[previewItem.sys_alarm, previewItem.sys_sprinkler, previewItem.sys_manual].filter(Boolean).join(", ")} />
+                     <PreviewRow label="Rendszer helye" value={previewItem.systemLocation} />
+                     <PreviewRow label="Vill. főkapcs." value={previewItem.mainSwitch} />
+                     <PreviewRow label="Gáz" value={previewItem.gasValve} />
+                     <PreviewRow label="Villámvédelem" value={tr(previewItem.lightning)} />
+                     <PreviewRow label="Érintésvéd. JKV" value={tr(previewItem.shockProt)} />
+                     <PreviewRow label="Villámvéd. JKV" value={tr(previewItem.lightningDoc)} />
+                     <PreviewRow label="Hulladék helye" value={tr(previewItem.waste)} />
+                 </PreviewSection>
+
+                 <PreviewSection title="Egyéb">
+                    <p className="col-span-2 text-slate-600 italic bg-slate-50 p-3 rounded">{previewItem.notes || "Nincs megjegyzés"}</p>
+                 </PreviewSection>
               </div>
            </div>
         </div>
       )}
 
-      {/* --- SZERKESZTÉS MODAL (ABLAK) --- */}
+      {/* --- SZERKESZTÉS MODAL (TELJES) --- */}
       {editItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl">
-              <div className="sticky top-0 bg-white border-b border-slate-100 p-5">
-                 <h2 className="text-xl font-bold text-slate-800">Adatlap Szerkesztése</h2>
-                 <p className="text-sm text-slate-500">A módosítások mentés után a PDF-ben is frissülnek.</p>
+           <div className="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl flex flex-col">
+              <div className="sticky top-0 bg-white border-b border-slate-100 p-5 z-10">
+                 <h2 className="text-xl font-bold text-slate-800">Adatlap Teljes Szerkesztése</h2>
               </div>
-              <div className="p-6 space-y-4">
-                 <EditGroup label="Cég neve" name="companyName" val={editItem.companyName} onChange={handleEditChange} />
-                 <EditGroup label="Székhely" name="headquarters" val={editItem.headquarters} onChange={handleEditChange} />
-                 <EditGroup label="Telephely címe" name="siteAddress" val={editItem.siteAddress} onChange={handleEditChange} />
+              
+              <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto">
                  
-                 <div className="grid grid-cols-2 gap-4">
-                    <EditGroup label="Dolgozók száma" name="employees" val={editItem.employees} onChange={handleEditChange} />
-                    <EditGroup label="Oltókészülék (db)" name="extCount" val={editItem.extCount} onChange={handleEditChange} />
+                 {/* 1. Szekció */}
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <EditGroup label="Cég neve" name="companyName" val={editItem.companyName} onChange={handleEditChange} />
+                    <EditGroup label="Székhely" name="headquarters" val={editItem.headquarters} onChange={handleEditChange} />
+                    <EditGroup label="Telephely címe" name="siteAddress" val={editItem.siteAddress} onChange={handleEditChange} />
                  </div>
 
-                 <EditGroup label="Fő tevékenység" name="mainActivity" val={editItem.mainActivity} onChange={handleEditChange} />
-                 <EditGroup label="Villamos főkapcsoló helye" name="mainSwitch" val={editItem.mainSwitch} onChange={handleEditChange} />
-                 
+                 {/* 2. Szekció */}
+                 <div className="bg-slate-50 p-4 rounded-xl grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <EditGroup label="Fő tevékenység" name="mainActivity" val={editItem.mainActivity} onChange={handleEditChange} />
+                    <EditGroup label="Spec. Technológia (ha van)" name="specialTechDesc" val={editItem.specialTechDesc} onChange={handleEditChange} />
+                 </div>
+
+                 {/* 3. Szekció */}
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <EditGroup label="Épület típus (kód)" name="buildingType" val={editItem.buildingType} onChange={handleEditChange} />
+                    <EditGroup label="Emelet száma" name="floorNumber" val={editItem.floorNumber} onChange={handleEditChange} />
+                    <EditGroup label="Megközelítés (kód)" name="access" val={editItem.access} onChange={handleEditChange} />
+                    <EditGroup label="Terület (m2)" name="areaSize" val={editItem.areaSize} onChange={handleEditChange} />
+                 </div>
+
+                 {/* 4. Szekció */}
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <EditGroup label="Falazat (kód)" name="walls" val={editItem.walls} onChange={handleEditChange} />
+                    <EditGroup label="Födém (kód)" name="ceiling" val={editItem.ceiling} onChange={handleEditChange} />
+                    <EditGroup label="Tető (kód)" name="roofType" val={editItem.roofType} onChange={handleEditChange} />
+                    <EditGroup label="Szigetelés (yes/no)" name="insulation" val={editItem.insulation} onChange={handleEditChange} />
+                 </div>
+
+                 {/* 5-6. Szekció */}
+                 <div className="border-t pt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <EditGroup label="Dolgozók" name="employees" val={editItem.employees} onChange={handleEditChange} />
+                    <EditGroup label="Ügyfelek (Max)" name="clientsMax" val={editItem.clientsMax} onChange={handleEditChange} />
+                    <EditGroup label="Kijáratok (db)" name="exits" val={editItem.exits} onChange={handleEditChange} />
+                    <EditGroup label="Távolság (m)" name="distM" val={editItem.distM} onChange={handleEditChange} />
+                 </div>
+
+                 {/* 8. Szekció */}
+                 <div className="bg-indigo-50 p-4 rounded-xl grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <EditGroup label="Készülék db" name="extCount" val={editItem.extCount} onChange={handleEditChange} />
+                    <EditGroup label="Típus" name="extType" val={editItem.extType} onChange={handleEditChange} />
+                    <EditGroup label="Hely" name="extLocation" val={editItem.extLocation} onChange={handleEditChange} />
+                 </div>
+
+                 {/* 10. Szekció */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <EditGroup label="Villamos főkapcsoló" name="mainSwitch" val={editItem.mainSwitch} onChange={handleEditChange} />
+                    <EditGroup label="Gáz elzáró" name="gasValve" val={editItem.gasValve} onChange={handleEditChange} />
+                 </div>
+
+                 {/* Megjegyzés */}
                  <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">Megjegyzés</label>
-                    <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border p-2 rounded-lg h-24"></textarea>
+                    <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-indigo-500"></textarea>
                  </div>
+
               </div>
-              <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 sticky bottom-0">
+              
+              <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 sticky bottom-0 z-10">
                  <button onClick={() => setEditItem(null)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold">Mégse</button>
-                 <button onClick={saveEdit} className="bg-green-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:bg-green-700">Mentés</button>
+                 <button onClick={saveEdit} className="bg-green-600 text-white px-8 py-2 rounded-lg font-bold shadow-lg hover:bg-green-700">Mentés</button>
               </div>
            </div>
         </div>
@@ -335,7 +384,7 @@ export default function AdminPage() {
   );
 }
 
-// --- KISEBB UI KOMPONENSEK ---
+// --- UI HELPERS ---
 
 function PreviewSection({ title, children }: any) {
     return (
@@ -350,9 +399,9 @@ function PreviewSection({ title, children }: any) {
 
 function PreviewRow({ label, value }: any) {
     return (
-        <div className="flex flex-col">
-            <span className="text-xs text-slate-400 font-semibold">{label}</span>
-            <span className="text-slate-800 font-medium">{value || "-"}</span>
+        <div className="flex flex-col border-l-2 border-slate-100 pl-3">
+            <span className="text-xs text-slate-400 font-semibold uppercase">{label}</span>
+            <span className="text-slate-800 font-medium break-words">{value || "-"}</span>
         </div>
     );
 }
@@ -360,8 +409,8 @@ function PreviewRow({ label, value }: any) {
 function EditGroup({ label, name, val, onChange }: any) {
     return (
         <div>
-            <label className="block text-sm font-bold text-slate-700 mb-1">{label}</label>
-            <input type="text" name={name} value={val || ""} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none" />
+            <label className="block text-xs font-bold text-slate-500 mb-1 uppercase">{label}</label>
+            <input type="text" name={name} value={val || ""} onChange={onChange} className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 font-medium" />
         </div>
     );
 }
