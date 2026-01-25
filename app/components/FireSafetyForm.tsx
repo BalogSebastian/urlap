@@ -79,7 +79,7 @@ export default function FireSafetyForm() {
             </svg>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mb-4">
-            Tűzvédelmi Adatlap
+            Trident Shield Group Kft. Adatbekérő
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto leading-relaxed">
             Kérjük, pontosan töltse ki az alábbi űrlapot a dokumentáció elkészítéséhez.
@@ -100,7 +100,6 @@ export default function FireSafetyForm() {
             <InputGroup label="Telephely címe" name="siteAddress" placeholder="Ahová az anyag készül" required />
           </div>
         </Section>
-
         {/* 2. Rendeltetés */}
         <Section number="02" title="Rendeltetés, tevékenység" description="A végzett tevékenység jellege és kockázatai.">
           <InputGroup label="A telephely fő tevékenysége" name="mainActivity" placeholder="pl. virágbolt, iroda..." fullWidth required />
