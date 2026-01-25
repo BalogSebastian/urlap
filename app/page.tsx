@@ -1,3 +1,4 @@
+// /app/page.tsx
 import FireSafetyForm from "./components/FireSafetyForm";
 
 export default function Home() {

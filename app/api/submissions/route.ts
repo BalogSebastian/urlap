@@ -1,3 +1,4 @@
+// /app/api/submissions/route.ts
 import dbConnect from "@/lib/mongodb";
 import Submission from "@/models/Submission";
 import { NextResponse } from "next/server";
