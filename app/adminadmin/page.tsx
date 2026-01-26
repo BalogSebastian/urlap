@@ -25,20 +25,27 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   
   // --- MODAL ÁLLAPOTOK ---
-  const [previewItem, setPreviewItem] = useState<any>(null);
   const [editItem, setEditItem] = useState<any>(null);
   const [emailItem, setEmailItem] = useState<any>(null);
   
-  const [targetEmail, setTargetEmail] = useState("");
+  // EMAIL OPCIÓK ÁLLAPOTAI
+  const [targetEmail, setTargetEmail] = useState("sebimbalog@gmail.com");
+  // Itt mostantól egy tömböt tárolunk a kiválasztott elemekkel
+  const [selectedOrders, setSelectedOrders] = useState<string[]>(["Kockázatértékelés"]); 
+  const [senderName, setSenderName] = useState("Jani");
+  
   const [sending, setSending] = useState(false);
 
-  // --- ADATOK BETÖLTÉSE ---
+  // --- ADATOK BETÖLTÉSE (CSAK TŰZVÉDELEM) ---
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/submissions");
       const data = await res.json();
-      if (res.ok) setSubmissions(data);
+      if (res.ok) {
+          const fireData = data.filter((item: any) => item.formType !== 'vbs');
+          setSubmissions(fireData);
+      }
       else console.error("API Hiba:", data.error);
     } catch (err) {
       console.error("Hálózati hiba:", err);
@@ -97,6 +104,7 @@ export default function AdminPage() {
     setEditItem({ ...editItem, [e.target.name]: e.target.value });
   };
 
+  // --- EMAIL KÜLDÉS ---
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
@@ -109,16 +117,27 @@ export default function AdminPage() {
         }
 
         const formData = new FormData();
-        formData.append("file", pdfBlob as Blob, "Trident_Adatlap.pdf");
+        formData.append("file", pdfBlob as Blob, `Adatlap_${emailItem.companyName}.pdf`);
         formData.append("email", targetEmail);
-        formData.append("companyName", emailItem.companyName);
+        
+        // Adatok
+        formData.append("companyName", emailItem.companyName || "-");
+        formData.append("headquarters", emailItem.headquarters || "-");
+        formData.append("siteAddress", emailItem.siteAddress || "-");
+        formData.append("managerName", emailItem.managerName || "-");
+        
+        // FONTOS: Itt fűzzük össze a kiválasztott opciókat egy stringgé
+        // Ha üres, akkor "-" jelet küldünk
+        const orderString = selectedOrders.length > 0 ? selectedOrders.join(", ") : "-";
+        
+        formData.append("orderType", orderString);
+        formData.append("senderName", senderName);
 
         const res = await fetch("/api/send-email", { method: "POST", body: formData });
 
         if (res.ok) {
-            alert("Email sikeresen elküldve!");
+            alert(`Email sikeresen elküldve a(z) ${targetEmail} címre!\nFeladó: ${senderName}`);
             setEmailItem(null);
-            setTargetEmail("");
         } else {
             const err = await res.json();
             alert("Hiba: " + err.error);
@@ -131,39 +150,33 @@ export default function AdminPage() {
     }
   };
 
-  // --- FORDÍTÓ FÜGGVÉNY (BŐVÍTETT) ---
+  // --- Checkbox Kezelő (Több kiválasztása) ---
+  const toggleOrder = (option: string) => {
+      if (selectedOrders.includes(option)) {
+          setSelectedOrders(prev => prev.filter(item => item !== option));
+      } else {
+          setSelectedOrders(prev => [...prev, option]);
+      }
+  };
+
+  // --- FORDÍTÓ FÜGGVÉNY ---
   const tr = (val: string) => {
     const map: any = {
-        // Általános
         'yes': 'Igen', 'no': 'Nem', 'dk': 'Nem tudom', 'unknown': 'Nem tudom',
-        
-        // Falazat
         'brick': 'Tégla falazat', 'concrete': 'Panel / Vasbeton', 'steel': 'Fém / Acélváz', 'light': 'Könnyűszerkezetes',
-        
-        // Födém
         'plastered': 'Vakolt mennyezet', 'wood': 'Fagerendás', 'metal': 'Trapézlemez / Acél', 
-        
-        // Tető
         'flat': 'Lapos tető (bitumen)', 'pitched': 'Magastető', 
         'tile': 'Cserép', 'sheet': 'Lemez', 'shingle': 'Zsindely', 'panel': 'Szendvicspanel',
-        
-        // Épület típus
         'standalone': 'Önálló földszintes', 'multi_ground': 'Többszintes ép. földszintjén', 
         'multi_floor': 'Többszintes ép. emeletén', 'industrial': 'Ipari / Csarnok', 'residential': 'Társasház / Pince',
-        
-        // Megközelítés
         'street': 'Utcáról közvetlenül', 'staircase': 'Lépcsőházból', 'yard': 'Udvarról',
-        
-        // Hulladék helye
         'inside': 'Épületen belül', 'room': 'Külön helyiségben', 'outside': 'Udvaron / Kukatárolóban',
-        
-        // Gáz
         'pb': 'PB Gázpalack',
     };
     return map[val] || val || "-";
   };
 
-  // --- 🔥 VÉGLEGES PDF GENERÁTOR (MINDEN MEZŐVEL) 🔥 ---
+  // --- PDF GENERÁTOR ---
   const generatePDF = async (data: any, returnBlob = false) => {
     const doc = new jsPDF();
     
@@ -186,7 +199,6 @@ export default function AdminPage() {
         alert("Font hiba: ékezetek nélkül (Q betűkkel) fog elkészülni.");
     }
 
-    // --- CÍMSOR ---
     const primaryColor = [20, 50, 120] as [number, number, number];
     if (fontLoaded) doc.setFont("Roboto", "bold");
     
@@ -202,16 +214,12 @@ export default function AdminPage() {
     doc.setLineWidth(0.5);
     doc.line(20, 33, 190, 33);
 
-    // Segédfüggvény listák összefűzésére
     const join = (arr: any[]) => arr ? arr.filter(Boolean).join(", ") : "-";
-    
-    // Checkboxok összegyűjtése listába
     const activityTypes = join([data.type_shop, data.type_office, data.type_warehouse, data.type_workshop, data.type_social, data.type_education, data.type_other]);
     const rooms = join([data.room_office, data.room_guest, data.room_kitchen, data.room_warehouse, data.room_social, data.room_workshop]);
     const wastes = join([data.waste_communal, data.waste_select, data.waste_hazard, data.waste_industrial]);
     const signs = join([data.sign_firstaid, data.sign_extinguisher, data.sign_gas, data.sign_emergency, data.sign_no_smoking, data.sign_escape, data.sign_shelf, data.sign_camera]);
 
-    // --- TÁBLÁZAT ---
     const sectionStyle = {
         fillColor: [245, 247, 250] as [number, number, number],
         textColor: primaryColor,
@@ -221,7 +229,6 @@ export default function AdminPage() {
     };
 
     const tableBody = [
-        // 1. CÉGADATOK
         [{ content: '1. Cégadatok és Kapcsolattartás', colSpan: 2, styles: sectionStyle }],
         ['Cég neve', data.companyName || '-'],
         ['Székhely', data.headquarters || '-'],
@@ -231,7 +238,6 @@ export default function AdminPage() {
         ['Ügyvezető tel.', data.managerPhone || '-'],
         ['Ügyvezető email', data.managerEmail || '-'],
 
-        // 2. TEVÉKENYSÉG
         [{ content: '2. Tevékenység', colSpan: 2, styles: sectionStyle }],
         ['Fő tevékenység', data.mainActivity || '-'],
         ['Napi leírás', data.dailyActivity || '-'],
@@ -240,13 +246,11 @@ export default function AdminPage() {
         ['Spec. technológia', data.specialTech === 'yes' ? (data.specialTechDesc || 'Van') : 'Nincs'],
         ['Alvállalkozók', `${data.subcontractors || '0'} fő`],
 
-        // 3. MUNKAKÖRÜLMÉNYEK
         [{ content: '3. Munkakörülmények', colSpan: 2, styles: sectionStyle }],
         ['Képernyős munka', tr(data.screenWork)],
         ['Home Office', tr(data.homeOffice)],
         ['Magasban végzett', tr(data.highWork)],
 
-        // 4. ÉPÜLET
         [{ content: '4. Épület és Helyiségek', colSpan: 2, styles: sectionStyle }],
         ['Típus', tr(data.buildingType)],
         ['Emelet / Szintek', data.floorNumber || '-'],
@@ -256,7 +260,6 @@ export default function AdminPage() {
         ['Kézmosó/Fertőtlenítő', tr(data.handSanitizer)],
         ['Klíma / Fan-coil', tr(data.ac)],
 
-        // 5. SZERKEZETEK
         [{ content: '5. Szerkezetek', colSpan: 2, styles: sectionStyle }],
         ['Falazat', tr(data.walls)],
         ['Födém', tr(data.ceiling)],
@@ -264,7 +267,6 @@ export default function AdminPage() {
         ['Tető fedése', tr(data.roofCover)],
         ['Szigetelés (Dryvit)', tr(data.insulation)],
 
-        // 6. LÉTSZÁM & MENEKÜLÉS
         [{ content: '6. Létszám és Menekülés', colSpan: 2, styles: sectionStyle }],
         ['Dolgozók', `${data.employees || '0'} fő`],
         ['Ügyfelek (max)', `${data.clientsMax || '0'} fő`],
@@ -273,28 +275,24 @@ export default function AdminPage() {
         ['Menekülési út', data.distM ? `${data.distM} méter` : `${data.distStep || '0'} lépés`],
         ['Segítségre szoruló', data.disabled === 'yes' ? (data.disabledDesc || 'Van') : 'Nincs'],
 
-        // 7. BIZTONSÁG
         [{ content: '7. Biztonsági felszerelések', colSpan: 2, styles: sectionStyle }],
         ['Elsősegély doboz', tr(data.firstAid)],
         ['Tűzoltó készülék', `${data.extCount || '0'} db`],
         ['Kifüggesztett táblák', signs || '-'],
         ['Vegyszerek', data.chemicals || 'Nincs megadva'],
         
-        // 8. RENDSZEREK
         [{ content: '8. Rendszerek és Gépészet', colSpan: 2, styles: sectionStyle }],
         ['Rendszerek', join([data.sys_alarm, data.sys_sprinkler, data.sys_smoke, data.sys_manual])],
         ['Vill. főkapcsoló', data.mainSwitch || '-'],
         ['Gázellátás', tr(data.gasValve) + (data.gasLocation ? ` (${data.gasLocation})` : '')],
         ['Kazán', data.boiler === 'yes' ? (data.boilerDesc || 'Van') : 'Nincs'],
 
-        // 9. HULLADÉK & RAKTÁR
         [{ content: '9. Hulladék és Raktározás', colSpan: 2, styles: sectionStyle }],
         ['Hulladék típusok', wastes || 'Nincs megadva'],
         ['Polc teherbírás', data.shelfLoad ? `${data.shelfLoad} kg` : '-'],
         ['Polc jelölés hiány', data.shelfLabelMissing ? 'Jelölés hiányzik!' : 'Rendben'],
         ['Raktár helyiség', data.storageRoom === 'yes' ? `Van (${data.storageSize} m²)` : 'Nincs'],
 
-        // 11. EGYÉB
         [{ content: 'Egyéb megjegyzés', colSpan: 2, styles: sectionStyle }],
         [{ content: data.notes || "Nincs.", colSpan: 2, styles: { fontStyle: 'italic', textColor: 80 } }],
     ];
@@ -382,8 +380,14 @@ export default function AdminPage() {
                     </div>
                     
                     <div className="flex flex-wrap gap-2 justify-end">
-                        <button onClick={() => setEmailItem(sub)} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 flex items-center gap-2 border border-emerald-200">
-                             ✉️ Küldés
+                        <button onClick={() => {
+                            setEmailItem(sub);
+                            // Alaphelyzetbe állítások megnyitáskor (Sebi a default)
+                            setTargetEmail("sebimbalog@gmail.com");
+                            setSelectedOrders(["Kockázatértékelés"]); // Default
+                            setSenderName("Jani");
+                        }} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 flex items-center gap-2 border border-emerald-200">
+                             ✉️ Email
                         </button>
                         <button onClick={() => setEditItem(sub)} className="bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 border border-yellow-200">
                              ✏️ Szerkesztés
@@ -397,26 +401,84 @@ export default function AdminPage() {
                     </div>
                 </div>
             ))}
-            {!loading && submissions.length === 0 && <p className="text-center text-slate-400 py-10">Még nincs adat az adatbázisban.</p>}
         </div>
       </main>
 
       {/* --- EMAIL KÜLDÉS MODAL --- */}
       {emailItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6">
-               <h2 className="text-xl font-bold text-slate-800 mb-2">PDF Küldése Emailben</h2>
-               <p className="text-sm text-slate-500 mb-6">Címzett: <strong>{emailItem.managerEmail || emailItem.companyName}</strong></p>
+           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6">
+               <div className="flex justify-between items-start mb-4">
+                   <div>
+                       <h2 className="text-xl font-bold text-slate-800">Adatok küldése Emailben</h2>
+                       <p className="text-sm text-slate-500">A PDF csatolva lesz a levélhez.</p>
+                   </div>
+                   <button onClick={() => setEmailItem(null)} className="text-slate-400 hover:text-slate-600 text-2xl">×</button>
+               </div>
                
                <form onSubmit={handleSendEmail} className="space-y-4">
+                   
+                   {/* 1. Címzett kiválasztása (MELINDA KIVÉVE) */}
                    <div>
-                       <label className="block text-sm font-bold text-slate-700 mb-1">Címzett Email Címe</label>
-                       <input type="email" required placeholder="ugyfel@pelda.hu" value={targetEmail || emailItem.managerEmail || ""} onChange={(e) => setTargetEmail(e.target.value)} className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                       <label className="block text-sm font-bold text-slate-700 mb-1">Címzett kiválasztása</label>
+                       <select 
+                           value={targetEmail} 
+                           onChange={(e) => setTargetEmail(e.target.value)} 
+                           className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50"
+                       >
+                           <option value="sebimbalog@gmail.com">sebimbalog@gmail.com</option>
+                           <option value="nemeth.janos21@gmail.com">nemeth.janos21@gmail.com</option>
+                       </select>
                    </div>
-                   <div className="flex justify-end gap-3 pt-4">
+
+                   {/* 2. Megrendelés típusa - TÖBB KIJELÖLHETŐ */}
+                   <div>
+                       <label className="block text-sm font-bold text-slate-700 mb-2">Megrendelés típusa (Több is választható)</label>
+                       <div className="bg-slate-50 border border-gray-300 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
+                           {["Kockázatértékelés", "Komplex Tűzvédelem", "Komplex Munkavédelem", "Tűzvédelmi Szabályzat", "Munkavédelmi Szabályzat"].map((option) => (
+                               <label key={option} className="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1 rounded">
+                                   <input 
+                                      type="checkbox" 
+                                      checked={selectedOrders.includes(option)} 
+                                      onChange={() => toggleOrder(option)}
+                                      className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300"
+                                   />
+                                   <span className="text-sm text-slate-700">{option}</span>
+                               </label>
+                           ))}
+                       </div>
+                   </div>
+
+                   {/* 3. Küldő neve */}
+                   <div>
+                       <label className="block text-sm font-bold text-slate-700 mb-1">Ki küldi? (Aláírás)</label>
+                       <select 
+                           value={senderName} 
+                           onChange={(e) => setSenderName(e.target.value)} 
+                           className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50"
+                       >
+                           <option value="Jani">Jani</option>
+                           <option value="Márk">Márk</option>
+                       </select>
+                   </div>
+
+                   {/* Előnézet */}
+                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 mt-4">
+                       <p><strong>Előnézet:</strong></p>
+                       <p className="italic mt-1 text-xs text-gray-500">
+                           "Ügyfél adatai:<br/>
+                           Cégnév: {emailItem.companyName}<br/>
+                           Megrendelés: {selectedOrders.length > 0 ? selectedOrders.join(", ") : "(Üres)"}<br/>
+                           ...<br/>
+                           Köszönjük,<br/>
+                           {senderName}"
+                       </p>
+                   </div>
+
+                   <div className="flex justify-end gap-3 pt-4 border-t mt-4">
                        <button type="button" onClick={() => setEmailItem(null)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold">Mégse</button>
                        <button type="submit" disabled={sending} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 disabled:opacity-70 flex items-center gap-2">
-                           {sending ? "Küldés..." : "🚀 Küldés Most"}
+                           {sending ? "Küldés..." : "🚀 Mehet"}
                        </button>
                    </div>
                </form>
@@ -424,7 +486,7 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* --- EDIT MODAL (TELJESEN FELÚJÍTVA) --- */}
+      {/* --- EDIT MODAL (KORÁBBI MARAD) --- */}
       {editItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
            <div className="bg-white w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col">
@@ -456,7 +518,6 @@ export default function AdminPage() {
                         <EditGroup label="Napi tevékenység leírása" name="dailyActivity" val={editItem.dailyActivity} onChange={handleEditChange} />
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
-                        {/* Checkboxok egyszerűsített kezelése stringként */}
                         <EditGroup label="Üzlet?" name="type_shop" val={editItem.type_shop} onChange={handleEditChange} />
                         <EditGroup label="Iroda?" name="type_office" val={editItem.type_office} onChange={handleEditChange} />
                         <EditGroup label="Raktár?" name="type_warehouse" val={editItem.type_warehouse} onChange={handleEditChange} />
@@ -601,7 +662,7 @@ export default function AdminPage() {
   );
 }
 
-// UI Segéd a szerkesztőhöz
+// UI Segéd
 function EditGroup({ label, name, val, onChange }: any) {
     return (
         <div>

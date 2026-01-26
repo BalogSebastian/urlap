@@ -5,19 +5,30 @@ import nodemailer from 'nodemailer';
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
+    
+    // Adatok kinyerése
     const email = formData.get('email') as string;
     const file = formData.get('file') as File;
+    
+    // Adatlap adatai
     const companyName = formData.get('companyName') as string;
+    const headquarters = formData.get('headquarters') as string;
+    const siteAddress = formData.get('siteAddress') as string;
+    const managerName = formData.get('managerName') as string;
+    
+    // Kiválasztott opciók
+    const orderType = formData.get('orderType') as string; 
+    const senderName = formData.get('senderName') as string; // "Jani" vagy "Márk"
 
     if (!email || !file) {
       return NextResponse.json({ error: 'Hiányzó adatok' }, { status: 400 });
     }
 
-    // Fájl konvertálása Buffer-ré, hogy a nodemailer megegye
+    // Fájl konvertálása Buffer-ré
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // SMTP Beállítás (Gmail példa)
+    // SMTP Beállítás
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -26,15 +37,44 @@ export async function POST(req: Request) {
       },
     });
 
+    // --- LEVÉL HTML TARTALMA ---
+    // Módosítva: "Kedves Kolléga!" a Melinda helyett
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; color: #000000; font-size: 14px; line-height: 1.5;">
+        <p style="margin-bottom: 20px;">Kedves Kolléga!</p>
+        
+        <p style="margin-bottom: 25px;">A mellékletben csatolom az elvégzendő munkához az adatokat. Kérdés esetén keress bátran minket! 😉</p>
+        
+        <p style="font-weight: bold; margin-bottom: 5px;">Ügyfél adatai:</p>
+        <div style="margin-left: 0px;">
+            <p style="margin: 3px 0;">Cégnév: ${companyName}</p>
+            <p style="margin: 3px 0;">Telephely: ${siteAddress}</p>
+            <p style="margin: 3px 0;">Székhely: ${headquarters}</p>
+            <p style="margin: 3px 0;">Ügyvezető: ${managerName}</p>
+        </div>
+        
+        <p style="margin-top: 15px; margin-bottom: 25px;">
+           <span style="font-weight: bold;">Megrendelés:</span> <i>${orderType}</i>
+        </p>
+
+        <p style="margin-bottom: 5px;">Köszönjük,</p>
+        <p style="font-weight: bold; margin-top: 0;">${senderName}</p>
+        
+        <p style="margin-top: 20px;">
+           Minden információt megtalálsz a pdf-ben. A képeket is csatolom.
+        </p>
+      </div>
+    `;
+
     // Levél küldése
     await transporter.sendMail({
-      from: `"Tűzvédelmi Rendszer" <${process.env.EMAIL_USER}>`,
+      from: `"${senderName}" <${process.env.EMAIL_USER}>`, 
       to: email,
-      subject: `Tűzvédelmi Adatlap - ${companyName}`,
-      text: `Tisztelt Partnerünk!\n\nCsatoltan küldjük a(z) ${companyName} részére készített tűzvédelmi adatlapot.\n\nÜdvözlettel,\nTűzvédelmi Rendszer`,
+      subject: `Adatlap - ${companyName}`,
+      html: htmlContent, 
       attachments: [
         {
-          filename: `tuzvedelem_${companyName.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+          filename: file.name,
           content: buffer,
         },
       ],
