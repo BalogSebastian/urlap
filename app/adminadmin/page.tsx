@@ -1,4 +1,3 @@
-// /app/adminadmin/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -30,7 +29,6 @@ export default function AdminPage() {
   
   // EMAIL OPCIÓK ÁLLAPOTAI
   const [targetEmail, setTargetEmail] = useState("sebimbalog@gmail.com");
-  // Itt mostantól egy tömböt tárolunk a kiválasztott elemekkel
   const [selectedOrders, setSelectedOrders] = useState<string[]>(["Kockázatértékelés"]); 
   const [senderName, setSenderName] = useState("Jani");
   
@@ -68,35 +66,41 @@ export default function AdminPage() {
     }
   };
 
-  // --- MŰVELETEK ---
+  // --- MŰVELETEK (JAVÍTVA) ---
   const deleteSubmission = async (id: string) => {
     if (!confirm("Biztosan törölni szeretné véglegesen az adatbázisból?")) return;
     try {
         const res = await fetch(`/api/submissions/${id}`, { method: "DELETE" });
+        const result = await res.json();
         if (res.ok) {
             setSubmissions(prev => prev.filter(s => s._id !== id));
-            alert("Törölve.");
-        } else alert("Hiba a törlésnél.");
+            alert("Sikeresen törölve.");
+        } else {
+            alert("Hiba a törlésnél: " + (result.error || "Ismeretlen hiba"));
+        }
     } catch (error) {
         alert("Szerver hiba.");
     }
   };
 
   const saveEdit = async () => {
+    if (!editItem) return;
     try {
         const res = await fetch(`/api/submissions/${editItem._id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(editItem)
         });
-        if (res.ok) {
-            const updated = await res.json();
-            setSubmissions(prev => prev.map(s => s._id === editItem._id ? updated.data : s));
+        const result = await res.json();
+        if (res.ok && result.success) {
+            setSubmissions(prev => prev.map(s => s._id === editItem._id ? result.data : s));
             setEditItem(null);
-            alert("Sikeres mentés!");
-        } else alert("Mentés sikertelen.");
+            alert("Sikeres mentés az adatbázisba!");
+        } else {
+            alert("Mentés sikertelen: " + (result.error || "Hiba történt"));
+        }
     } catch (error) {
-        alert("Hiba történt.");
+        alert("Hiba történt a hálózati kommunikáció során.");
     }
   };
 
@@ -110,7 +114,6 @@ export default function AdminPage() {
     setSending(true);
     try {
         const pdfBlob = await generatePDF(emailItem, true);
-        
         if (!pdfBlob) {
              setSending(false);
              return;
@@ -119,17 +122,12 @@ export default function AdminPage() {
         const formData = new FormData();
         formData.append("file", pdfBlob as Blob, `Adatlap_${emailItem.companyName}.pdf`);
         formData.append("email", targetEmail);
-        
-        // Adatok
         formData.append("companyName", emailItem.companyName || "-");
         formData.append("headquarters", emailItem.headquarters || "-");
         formData.append("siteAddress", emailItem.siteAddress || "-");
         formData.append("managerName", emailItem.managerName || "-");
         
-        // FONTOS: Itt fűzzük össze a kiválasztott opciókat egy stringgé
-        // Ha üres, akkor "-" jelet küldünk
         const orderString = selectedOrders.length > 0 ? selectedOrders.join(", ") : "-";
-        
         formData.append("orderType", orderString);
         formData.append("senderName", senderName);
 
@@ -150,7 +148,6 @@ export default function AdminPage() {
     }
   };
 
-  // --- Checkbox Kezelő (Több kiválasztása) ---
   const toggleOrder = (option: string) => {
       if (selectedOrders.includes(option)) {
           setSelectedOrders(prev => prev.filter(item => item !== option));
@@ -159,7 +156,6 @@ export default function AdminPage() {
       }
   };
 
-  // --- FORDÍTÓ FÜGGVÉNY ---
   const tr = (val: string) => {
     const map: any = {
         'yes': 'Igen', 'no': 'Nem', 'dk': 'Nem tudom', 'unknown': 'Nem tudom',
@@ -176,11 +172,8 @@ export default function AdminPage() {
     return map[val] || val || "-";
   };
 
-  // --- PDF GENERÁTOR ---
   const generatePDF = async (data: any, returnBlob = false) => {
     const doc = new jsPDF();
-    
-    // Roboto font betöltése
     const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
     let fontLoaded = false;
 
@@ -196,12 +189,10 @@ export default function AdminPage() {
         fontLoaded = true;
     } catch (e) {
         console.error("FONT HIBA:", e);
-        alert("Font hiba: ékezetek nélkül (Q betűkkel) fog elkészülni.");
     }
 
     const primaryColor = [20, 50, 120] as [number, number, number];
     if (fontLoaded) doc.setFont("Roboto", "bold");
-    
     doc.setFontSize(22);
     doc.setTextColor(...primaryColor);
     doc.text("Trident Shield Group Kft.", 20, 20);
@@ -237,7 +228,6 @@ export default function AdminPage() {
         ['Ügyvezető neve', data.managerName || '-'],
         ['Ügyvezető tel.', data.managerPhone || '-'],
         ['Ügyvezető email', data.managerEmail || '-'],
-
         [{ content: '2. Tevékenység', colSpan: 2, styles: sectionStyle }],
         ['Fő tevékenység', data.mainActivity || '-'],
         ['Napi leírás', data.dailyActivity || '-'],
@@ -245,12 +235,10 @@ export default function AdminPage() {
         ['Eszközök', data.toolsUsed || '-'],
         ['Spec. technológia', data.specialTech === 'yes' ? (data.specialTechDesc || 'Van') : 'Nincs'],
         ['Alvállalkozók', `${data.subcontractors || '0'} fő`],
-
         [{ content: '3. Munkakörülmények', colSpan: 2, styles: sectionStyle }],
         ['Képernyős munka', tr(data.screenWork)],
         ['Home Office', tr(data.homeOffice)],
         ['Magasban végzett', tr(data.highWork)],
-
         [{ content: '4. Épület és Helyiségek', colSpan: 2, styles: sectionStyle }],
         ['Típus', tr(data.buildingType)],
         ['Emelet / Szintek', data.floorNumber || '-'],
@@ -259,14 +247,12 @@ export default function AdminPage() {
         ['WC / Mosdó', tr(data.restroom)],
         ['Kézmosó/Fertőtlenítő', tr(data.handSanitizer)],
         ['Klíma / Fan-coil', tr(data.ac)],
-
         [{ content: '5. Szerkezetek', colSpan: 2, styles: sectionStyle }],
         ['Falazat', tr(data.walls)],
         ['Födém', tr(data.ceiling)],
         ['Tető típusa', tr(data.roofType)],
         ['Tető fedése', tr(data.roofCover)],
         ['Szigetelés (Dryvit)', tr(data.insulation)],
-
         [{ content: '6. Létszám és Menekülés', colSpan: 2, styles: sectionStyle }],
         ['Dolgozók', `${data.employees || '0'} fő`],
         ['Ügyfelek (max)', `${data.clientsMax || '0'} fő`],
@@ -274,25 +260,21 @@ export default function AdminPage() {
         ['Főajtó', `${data.doorWidth || '0'} cm`],
         ['Menekülési út', data.distM ? `${data.distM} méter` : `${data.distStep || '0'} lépés`],
         ['Segítségre szoruló', data.disabled === 'yes' ? (data.disabledDesc || 'Van') : 'Nincs'],
-
         [{ content: '7. Biztonsági felszerelések', colSpan: 2, styles: sectionStyle }],
         ['Elsősegély doboz', tr(data.firstAid)],
         ['Tűzoltó készülék', `${data.extCount || '0'} db`],
         ['Kifüggesztett táblák', signs || '-'],
         ['Vegyszerek', data.chemicals || 'Nincs megadva'],
-        
         [{ content: '8. Rendszerek és Gépészet', colSpan: 2, styles: sectionStyle }],
         ['Rendszerek', join([data.sys_alarm, data.sys_sprinkler, data.sys_smoke, data.sys_manual])],
         ['Vill. főkapcsoló', data.mainSwitch || '-'],
         ['Gázellátás', tr(data.gasValve) + (data.gasLocation ? ` (${data.gasLocation})` : '')],
         ['Kazán', data.boiler === 'yes' ? (data.boilerDesc || 'Van') : 'Nincs'],
-
         [{ content: '9. Hulladék és Raktározás', colSpan: 2, styles: sectionStyle }],
         ['Hulladék típusok', wastes || 'Nincs megadva'],
         ['Polc teherbírás', data.shelfLoad ? `${data.shelfLoad} kg` : '-'],
         ['Polc jelölés hiány', data.shelfLabelMissing ? 'Jelölés hiányzik!' : 'Rendben'],
         ['Raktár helyiség', data.storageRoom === 'yes' ? `Van (${data.storageSize} m²)` : 'Nincs'],
-
         [{ content: 'Egyéb megjegyzés', colSpan: 2, styles: sectionStyle }],
         [{ content: data.notes || "Nincs.", colSpan: 2, styles: { fontStyle: 'italic', textColor: 80 } }],
     ];
@@ -302,39 +284,23 @@ export default function AdminPage() {
         body: tableBody,
         theme: 'grid',
         pageBreak: 'auto',
-        rowPageBreak: 'avoid',
         margin: { top: 25, bottom: 30, left: 20, right: 14 }, 
-        styles: {
-            font: fontLoaded ? "Roboto" : undefined,
-            fontSize: 10,
-            textColor: [40, 40, 40],
-            cellPadding: 4, 
-            valign: 'middle',
-            lineColor: [220, 220, 220],
-            lineWidth: 0.1,
-            overflow: 'linebreak'
-        },
-        columnStyles: {
-            0: { cellWidth: 70, fontStyle: 'bold', textColor: [70, 70, 70], fillColor: [252, 252, 252] }, 
-            1: { cellWidth: 'auto', fontStyle: 'normal' }
-        },
-        didDrawPage: function (data) {
-            const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+        styles: { font: fontLoaded ? "Roboto" : undefined, fontSize: 10, cellPadding: 4 },
+        columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold' } },
+        didDrawPage: (d) => {
+            const h = doc.internal.pageSize.height;
             doc.setFillColor(...primaryColor);
-            doc.rect(0, 0, 8, pageHeight, "F"); 
+            doc.rect(0, 0, 8, h, "F");
             doc.setFontSize(8);
             doc.setTextColor(150);
-            if(fontLoaded) doc.setFont("Roboto", "normal");
-            doc.text(`Trident Shield Group Kft. | Adatlap | ${data.pageNumber}. oldal`, 20, pageHeight - 10);
-        },
+            doc.text(`Trident Shield Group Kft. | ${d.pageNumber}. oldal`, 20, h - 10);
+        }
     });
 
     if (returnBlob) return doc.output("blob");
-    const cleanName = (data.companyName || 'adatlap').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    doc.save(`Trident_${cleanName}.pdf`);
+    doc.save(`Trident_${data.companyName || 'adatlap'}.pdf`);
   };
 
-  // --- UI ---
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
@@ -370,7 +336,7 @@ export default function AdminPage() {
 
         <div className="grid gap-4">
             {!loading && submissions.slice().reverse().map((sub, i) => (
-                <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4 hover:shadow-md transition-shadow">
+                <div key={sub._id || i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4 hover:shadow-md transition-shadow">
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                             <h3 className="text-xl font-bold text-slate-800 truncate">{sub.companyName || "Névtelen"}</h3>
@@ -380,117 +346,58 @@ export default function AdminPage() {
                     </div>
                     
                     <div className="flex flex-wrap gap-2 justify-end">
-                        <button onClick={() => {
-                            setEmailItem(sub);
-                            // Alaphelyzetbe állítások megnyitáskor (Sebi a default)
-                            setTargetEmail("sebimbalog@gmail.com");
-                            setSelectedOrders(["Kockázatértékelés"]); // Default
-                            setSenderName("Jani");
-                        }} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 flex items-center gap-2 border border-emerald-200">
-                             ✉️ Email
-                        </button>
-                        <button onClick={() => setEditItem(sub)} className="bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 border border-yellow-200">
-                             ✏️ Szerkesztés
-                        </button>
-                        <button onClick={() => generatePDF(sub)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 shadow-md">
-                             📄 PDF Letöltés
-                        </button>
-                        <button onClick={() => deleteSubmission(sub._id)} className="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 border border-red-200">
-                             🗑️
-                        </button>
+                        <button onClick={() => {setEmailItem(sub); setTargetEmail("sebimbalog@gmail.com"); setSelectedOrders(["Kockázatértékelés"]); setSenderName("Jani");}} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 flex items-center gap-2 border border-emerald-200">✉️ Email</button>
+                        <button onClick={() => setEditItem(sub)} className="bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 border border-yellow-200">✏️ Szerkesztés</button>
+                        <button onClick={() => generatePDF(sub)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 shadow-md">📄 PDF</button>
+                        <button onClick={() => deleteSubmission(sub._id)} className="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 border border-red-200">🗑️</button>
                     </div>
                 </div>
             ))}
         </div>
       </main>
 
-      {/* --- EMAIL KÜLDÉS MODAL --- */}
+      {/* --- EMAIL MODAL --- */}
       {emailItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6">
                <div className="flex justify-between items-start mb-4">
-                   <div>
-                       <h2 className="text-xl font-bold text-slate-800">Adatok küldése Emailben</h2>
-                       <p className="text-sm text-slate-500">A PDF csatolva lesz a levélhez.</p>
-                   </div>
+                   <h2 className="text-xl font-bold">Email küldése</h2>
                    <button onClick={() => setEmailItem(null)} className="text-slate-400 hover:text-slate-600 text-2xl">×</button>
                </div>
-               
                <form onSubmit={handleSendEmail} className="space-y-4">
-                   
-                   {/* 1. Címzett kiválasztása (MELINDA KIVÉVE) */}
-                   <div>
-                       <label className="block text-sm font-bold text-slate-700 mb-1">Címzett kiválasztása</label>
-                       <select 
-                           value={targetEmail} 
-                           onChange={(e) => setTargetEmail(e.target.value)} 
-                           className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50"
-                       >
-                           <option value="sebimbalog@gmail.com">sebimbalog@gmail.com</option>
-                           <option value="nemeth.janos21@gmail.com">nemeth.janos21@gmail.com</option>
-                       </select>
+                   <label className="block text-sm font-bold">Címzett</label>
+                   <select value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50">
+                       <option value="sebimbalog@gmail.com">sebimbalog@gmail.com</option>
+                       <option value="nemeth.janos21@gmail.com">nemeth.janos21@gmail.com</option>
+                   </select>
+                   <label className="block text-sm font-bold">Megrendelés típusa</label>
+                   <div className="bg-slate-50 border p-3 rounded-lg space-y-2 max-h-40 overflow-y-auto">
+                       {["Kockázatértékelés", "Komplex Tűzvédelem", "Komplex Munkavédelem", "Tűzvédelmi Szabályzat", "Munkavédelmi Szabályzat"].map((option) => (
+                           <label key={option} className="flex items-center gap-2">
+                               <input type="checkbox" checked={selectedOrders.includes(option)} onChange={() => toggleOrder(option)} className="w-4 h-4" />
+                               <span className="text-sm">{option}</span>
+                           </label>
+                       ))}
                    </div>
-
-                   {/* 2. Megrendelés típusa - TÖBB KIJELÖLHETŐ */}
-                   <div>
-                       <label className="block text-sm font-bold text-slate-700 mb-2">Megrendelés típusa (Több is választható)</label>
-                       <div className="bg-slate-50 border border-gray-300 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
-                           {["Kockázatértékelés", "Komplex Tűzvédelem", "Komplex Munkavédelem", "Tűzvédelmi Szabályzat", "Munkavédelmi Szabályzat"].map((option) => (
-                               <label key={option} className="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1 rounded">
-                                   <input 
-                                      type="checkbox" 
-                                      checked={selectedOrders.includes(option)} 
-                                      onChange={() => toggleOrder(option)}
-                                      className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300"
-                                   />
-                                   <span className="text-sm text-slate-700">{option}</span>
-                               </label>
-                           ))}
-                       </div>
-                   </div>
-
-                   {/* 3. Küldő neve */}
-                   <div>
-                       <label className="block text-sm font-bold text-slate-700 mb-1">Ki küldi? (Aláírás)</label>
-                       <select 
-                           value={senderName} 
-                           onChange={(e) => setSenderName(e.target.value)} 
-                           className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-emerald-500 outline-none bg-slate-50"
-                       >
-                           <option value="Jani">Jani</option>
-                           <option value="Márk">Márk</option>
-                       </select>
-                   </div>
-
-                   {/* Előnézet */}
-                   <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-600 mt-4">
-                       <p><strong>Előnézet:</strong></p>
-                       <p className="italic mt-1 text-xs text-gray-500">
-                           "Ügyfél adatai:<br/>
-                           Cégnév: {emailItem.companyName}<br/>
-                           Megrendelés: {selectedOrders.length > 0 ? selectedOrders.join(", ") : "(Üres)"}<br/>
-                           ...<br/>
-                           Köszönjük,<br/>
-                           {senderName}"
-                       </p>
-                   </div>
-
-                   <div className="flex justify-end gap-3 pt-4 border-t mt-4">
-                       <button type="button" onClick={() => setEmailItem(null)} className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-bold">Mégse</button>
-                       <button type="submit" disabled={sending} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 disabled:opacity-70 flex items-center gap-2">
-                           {sending ? "Küldés..." : "🚀 Mehet"}
-                       </button>
+                   <label className="block text-sm font-bold">Ki küldi?</label>
+                   <select value={senderName} onChange={(e) => setSenderName(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50">
+                       <option value="Jani">Jani</option>
+                       <option value="Márk">Márk</option>
+                   </select>
+                   <div className="flex justify-end gap-3 pt-4 border-t">
+                       <button type="button" onClick={() => setEmailItem(null)} className="px-4 py-2 bg-slate-100 rounded-lg">Mégse</button>
+                       <button type="submit" disabled={sending} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold">{sending ? "Küldés..." : "🚀 Mehet"}</button>
                    </div>
                </form>
            </div>
         </div>
       )}
 
-      {/* --- EDIT MODAL (KORÁBBI MARAD) --- */}
+      {/* --- EDIT MODAL (100% COMPLETE) --- */}
       {editItem && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
            <div className="bg-white w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col">
-              <div className="bg-white border-b border-slate-100 p-5 flex justify-between items-center">
+              <div className="bg-white border-b p-5 flex justify-between items-center sticky top-0 z-10">
                  <h2 className="text-xl font-bold text-slate-800">Adatlap Szerkesztése</h2>
                  <button onClick={() => setEditItem(null)} className="text-slate-400 hover:text-slate-600">✕</button>
               </div>
@@ -498,7 +405,7 @@ export default function AdminPage() {
               <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto bg-slate-50/50">
                  {/* 1. Cégadatok */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">1. Cég és Vezetés</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">1. Cég és Vezetés</h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <EditGroup label="Cég neve" name="companyName" val={editItem.companyName} onChange={handleEditChange} />
                         <EditGroup label="Székhely" name="headquarters" val={editItem.headquarters} onChange={handleEditChange} />
@@ -512,10 +419,10 @@ export default function AdminPage() {
 
                  {/* 2. Tevékenység */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">2. Tevékenység</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">2. Tevékenység</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <EditGroup label="Fő tevékenység" name="mainActivity" val={editItem.mainActivity} onChange={handleEditChange} />
-                        <EditGroup label="Napi tevékenység leírása" name="dailyActivity" val={editItem.dailyActivity} onChange={handleEditChange} />
+                        <EditGroup label="Napi leírás" name="dailyActivity" val={editItem.dailyActivity} onChange={handleEditChange} />
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
                         <EditGroup label="Üzlet?" name="type_shop" val={editItem.type_shop} onChange={handleEditChange} />
@@ -534,7 +441,7 @@ export default function AdminPage() {
 
                  {/* 3. Munkakörülmények */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">3. Munkakörülmények</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">3. Munkakörülmények</h3>
                     <div className="grid grid-cols-3 gap-4">
                          <EditGroup label="Képernyő (yes/no)" name="screenWork" val={editItem.screenWork} onChange={handleEditChange} />
                          <EditGroup label="Home Office (yes/no)" name="homeOffice" val={editItem.homeOffice} onChange={handleEditChange} />
@@ -544,14 +451,14 @@ export default function AdminPage() {
 
                  {/* 4. Épület */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">4. Épület és Higiénia</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">4. Épület és Higiénia</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                        <EditGroup label="Típus (kód)" name="buildingType" val={editItem.buildingType} onChange={handleEditChange} />
+                        <EditGroup label="Típus" name="buildingType" val={editItem.buildingType} onChange={handleEditChange} />
                         <EditGroup label="Emelet" name="floorNumber" val={editItem.floorNumber} onChange={handleEditChange} />
                         <EditGroup label="Terület" name="areaSize" val={editItem.areaSize} onChange={handleEditChange} />
                         <EditGroup label="Megközelítés" name="access" val={editItem.access} onChange={handleEditChange} />
                     </div>
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-4">
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
                         <EditGroup label="Hely: Iroda" name="room_office" val={editItem.room_office} onChange={handleEditChange} />
                         <EditGroup label="Hely: Vendég" name="room_guest" val={editItem.room_guest} onChange={handleEditChange} />
                         <EditGroup label="Hely: Konyha" name="room_kitchen" val={editItem.room_kitchen} onChange={handleEditChange} />
@@ -559,7 +466,7 @@ export default function AdminPage() {
                         <EditGroup label="Hely: Szoc." name="room_social" val={editItem.room_social} onChange={handleEditChange} />
                         <EditGroup label="Hely: Műhely" name="room_workshop" val={editItem.room_workshop} onChange={handleEditChange} />
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                          <EditGroup label="WC (yes/no)" name="restroom" val={editItem.restroom} onChange={handleEditChange} />
                          <EditGroup label="Kézmosó (yes/no)" name="handSanitizer" val={editItem.handSanitizer} onChange={handleEditChange} />
                          <EditGroup label="Klíma (yes/no)" name="ac" val={editItem.ac} onChange={handleEditChange} />
@@ -568,7 +475,7 @@ export default function AdminPage() {
 
                  {/* 5. Szerkezet */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">5. Szerkezetek</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">5. Szerkezetek</h3>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <EditGroup label="Falazat" name="walls" val={editItem.walls} onChange={handleEditChange} />
                         <EditGroup label="Födém" name="ceiling" val={editItem.ceiling} onChange={handleEditChange} />
@@ -580,7 +487,7 @@ export default function AdminPage() {
 
                  {/* 6. Menekülés */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">6. Létszám és Menekülés</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">6. Létszám és Menekülés</h3>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         <EditGroup label="Dolgozók" name="employees" val={editItem.employees} onChange={handleEditChange} />
                         <EditGroup label="Ügyfél Max" name="clientsMax" val={editItem.clientsMax} onChange={handleEditChange} />
@@ -592,13 +499,12 @@ export default function AdminPage() {
 
                  {/* 7. Biztonság */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">7. Biztonság és Táblák</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">7. Biztonság és Táblák</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                         <EditGroup label="Elsősegély (yes/no)" name="firstAid" val={editItem.firstAid} onChange={handleEditChange} />
                         <EditGroup label="Oltó db" name="extCount" val={editItem.extCount} onChange={handleEditChange} />
                         <EditGroup label="Vegyszerek" name="chemicals" val={editItem.chemicals} onChange={handleEditChange} />
                     </div>
-                    <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Kifüggesztett táblák (Töröld a tartalmát, ha nincs)</label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                          <EditGroup label="Elsősegély tábla" name="sign_firstaid" val={editItem.sign_firstaid} onChange={handleEditChange} />
                          <EditGroup label="Oltó tábla" name="sign_extinguisher" val={editItem.sign_extinguisher} onChange={handleEditChange} />
@@ -611,7 +517,7 @@ export default function AdminPage() {
 
                  {/* 8. Rendszerek */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">8. Rendszerek</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">8. Rendszerek és Gépészet</h3>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                         <EditGroup label="Tűzjelző" name="sys_alarm" val={editItem.sys_alarm} onChange={handleEditChange} />
                         <EditGroup label="Füstérzékelő" name="sys_smoke" val={editItem.sys_smoke} onChange={handleEditChange} />
@@ -624,12 +530,13 @@ export default function AdminPage() {
                         <EditGroup label="Gáz (no/yes/pb)" name="gasValve" val={editItem.gasValve} onChange={handleEditChange} />
                         <EditGroup label="Gáz helye" name="gasLocation" val={editItem.gasLocation} onChange={handleEditChange} />
                         <EditGroup label="Kazán (yes/no)" name="boiler" val={editItem.boiler} onChange={handleEditChange} />
+                        <EditGroup label="Kazán Leírás" name="boilerDesc" val={editItem.boilerDesc} onChange={handleEditChange} />
                     </div>
                  </div>
 
                  {/* 9. Hulladék */}
                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-bold text-indigo-900 uppercase tracking-wide mb-4 border-b pb-2">9. Hulladék és Raktár</h3>
+                    <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">9. Hulladék és Raktár</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                          <EditGroup label="Kommunális" name="waste_communal" val={editItem.waste_communal} onChange={handleEditChange} />
                          <EditGroup label="Szelektív" name="waste_select" val={editItem.waste_select} onChange={handleEditChange} />
@@ -640,29 +547,27 @@ export default function AdminPage() {
                          <EditGroup label="Polc terhelés (kg)" name="shelfLoad" val={editItem.shelfLoad} onChange={handleEditChange} />
                          <EditGroup label="Jelölés hiány?" name="shelfLabelMissing" val={editItem.shelfLabelMissing} onChange={handleEditChange} />
                          <EditGroup label="Raktár helyiség?" name="storageRoom" val={editItem.storageRoom} onChange={handleEditChange} />
+                         <EditGroup label="Raktár méret" name="storageSize" val={editItem.storageSize} onChange={handleEditChange} />
                     </div>
                  </div>
 
-                 {/* Megjegyzés */}
-                 <div>
-                    <label className="block text-sm font-bold text-slate-700 mb-1">Megjegyzés</label>
-                    <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700"></textarea>
+                 <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                    <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Megjegyzés</label>
+                    <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded-lg p-3 h-32 outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                  </div>
               </div>
               
-              <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50 sticky bottom-0 z-10">
-                 <button onClick={() => setEditItem(null)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold">Mégse</button>
-                 <button onClick={saveEdit} className="bg-green-600 text-white px-8 py-2 rounded-lg font-bold shadow-lg hover:bg-green-700">Mentés (Adatbázisba)</button>
+              <div className="p-5 border-t bg-slate-50 flex justify-end gap-3 sticky bottom-0 z-10">
+                 <button onClick={() => setEditItem(null)} className="bg-white border px-4 py-2 rounded-lg font-bold">Mégse</button>
+                 <button onClick={saveEdit} className="bg-green-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-green-700 shadow-lg">Szerver Mentés</button>
               </div>
            </div>
         </div>
       )}
-
     </div>
   );
 }
 
-// UI Segéd
 function EditGroup({ label, name, val, onChange }: any) {
     return (
         <div>
