@@ -2,26 +2,38 @@
 import mongoose, { Schema, models } from "mongoose";
 
 const SubmissionSchema = new Schema({
+  // --- 0. ŰRLAP TÍPUSA (ÚJ) ---
+  // Ez dönti el, hogy Tűzvédelmi ('fire') vagy VBS ('vbs') adatlap
+  formType: { type: String, default: 'fire' }, 
+
+  // --- VBS SPECIFIKUS MEZŐK (ÚJ) ---
+  vbs_services: { type: String }, // Milyen vizsgálatot kér (vesszővel elválasztva)
+  vbs_prev_doc: { type: String }, // Rendelkezik korábbi dokumentummal? (Igen/Nem)
+
+  // ==========================================================
+  // --- KÖZÖS ÉS TŰZVÉDELMI MEZŐK ---
+  // ==========================================================
+
   // --- 1. Cégadatok és Kapcsolattartás ---
-  companyName: { type: String, required: true },
-  headquarters: { type: String, required: true },
-  siteAddress: { type: String, required: true },
-  taxNumber: { type: String }, // ÚJ: Adószám
+  companyName: { type: String, required: true }, // Cég neve (Közös)
+  headquarters: { type: String }, // Székhely (Közös)
+  siteAddress: { type: String }, // Telephely címe (Közös)
+  taxNumber: { type: String },
   
-  // Ügyvezető adatai (ÚJ)
-  managerName: { type: String },
-  managerPhone: { type: String },
+  // Ügyvezető adatai
+  managerName: { type: String }, // Képviselő neve (Közös)
+  managerPhone: { type: String }, // Képviselő telefon (Közös)
   managerEmail: { type: String },
 
   // --- 2. Tevékenység és Működés ---
-  mainActivity: { type: String, required: true },
-  dailyActivity: { type: String }, // ÚJ: Napi tevékenység leírása
+  mainActivity: { type: String }, // Tevékenységi kör (Közös)
+  dailyActivity: { type: String },
   
   employees: { type: Number, default: 0 },
-  subcontractors: { type: Number, default: 0 }, // ÚJ: Alvállalkozók
-  clientsMax: { type: Number, default: 0 }, // Ügyfélforgalom
+  subcontractors: { type: Number, default: 0 },
+  clientsMax: { type: Number, default: 0 },
   
-  toolsUsed: { type: String }, // ÚJ: Használt eszközök
+  toolsUsed: { type: String },
   
   specialTech: { type: String, default: 'no' }, // yes / no
   specialTechDesc: { type: String },
@@ -32,21 +44,21 @@ const SubmissionSchema = new Schema({
   type_warehouse: { type: String },
   type_workshop: { type: String },
   type_social: { type: String },
-  type_education: { type: String }, // ÚJ: Oktatás
+  type_education: { type: String },
   type_other: { type: String },
 
-  // --- 3. Munkakörülmények (ÚJ SZEKCIÓ) ---
-  screenWork: { type: String }, // Képernyős munka
-  homeOffice: { type: String }, // Otthoni munka
-  highWork: { type: String },   // Magasban végzett munka
+  // --- 3. Munkakörülmények ---
+  screenWork: { type: String },
+  homeOffice: { type: String },
+  highWork: { type: String },
 
   // --- 4. Épület és Higiénia ---
   buildingType: { type: String },
   floorNumber: { type: String },
   access: { type: String },
-  areaSize: { type: Number },
+  areaSize: { type: Number }, // Telephely mérete (Közös)
 
-  // Helyiségek (ÚJ Checkboxok)
+  // Helyiségek (Checkboxok)
   room_office: { type: String },
   room_guest: { type: String },
   room_kitchen: { type: String },
@@ -54,17 +66,17 @@ const SubmissionSchema = new Schema({
   room_social: { type: String },
   room_workshop: { type: String },
 
-  // Higiénia (ÚJ)
-  restroom: { type: String },      // WC/Mosdó
-  handSanitizer: { type: String }, // Kézmosó/Fertőtlenítő
-  ac: { type: String },            // Klíma
+  // Higiénia
+  restroom: { type: String },
+  handSanitizer: { type: String },
+  ac: { type: String },
 
   // --- 5. Szerkezetek ---
   walls: { type: String },
   ceiling: { type: String },
   roofType: { type: String },
   roofCover: { type: String },
-  insulation: { type: String }, // Külső szigetelés
+  insulation: { type: String },
 
   // --- 6. Menekülés ---
   exits: { type: String },
@@ -75,17 +87,17 @@ const SubmissionSchema = new Schema({
   disabled: { type: String, default: 'no' },
   disabledDesc: { type: String },
   
-  distM: { type: Number },    // Távolság méterben
-  distStep: { type: Number }, // Távolság lépésben
+  distM: { type: Number },
+  distStep: { type: Number },
 
   // --- 7. Biztonság és Táblák ---
-  firstAid: { type: String }, // ÚJ: Elsősegély doboz
+  firstAid: { type: String },
   extCount: { type: Number, default: 0 },
-  extType: { type: String }, // Régi mező, megtartjuk kompatibilitásnak
-  extLocation: { type: String }, // Régi mező
-  valid: { type: String }, // Régi mező
+  extType: { type: String },
+  extLocation: { type: String },
+  valid: { type: String },
 
-  // Táblák (ÚJ Checkboxok)
+  // Táblák (Checkboxok)
   sign_firstaid: { type: String },
   sign_extinguisher: { type: String },
   sign_gas: { type: String },
@@ -95,47 +107,45 @@ const SubmissionSchema = new Schema({
   sign_shelf: { type: String },
   sign_camera: { type: String },
 
-  chemicals: { type: String }, // ÚJ: Vegyszerek felsorolása
+  chemicals: { type: String },
 
   // --- 8. Rendszerek ---
   sys_alarm: { type: String },
   sys_sprinkler: { type: String },
-  sys_smoke: { type: String }, // ÚJ: Füstérzékelő
+  sys_smoke: { type: String },
   sys_manual: { type: String },
   sys_none: { type: String },
   systemLocation: { type: String },
 
-  // --- 10. Gépészet (A számozás követi az űrlapot) ---
+  // --- 10. Gépészet ---
   mainSwitch: { type: String },
-  gasValve: { type: String }, // no / yes / pb
+  gasValve: { type: String },
   gasLocation: { type: String },
   boiler: { type: String },
   boilerDesc: { type: String },
 
-  // --- 11. Villámvédelem (Régi űrlapról maradt mezők) ---
+  // --- 11. Villámvédelem ---
   lightning: { type: String },
   shockProt: { type: String },
   lightningDoc: { type: String },
 
   // --- 12. Hulladékkezelés ---
-  // Új checkboxos rendszer
   waste_communal: { type: String },
   waste_select: { type: String },
   waste_hazard: { type: String },
   waste_industrial: { type: String },
   
-  // Régi mezők (hogy ne vesszenek el a régi adatok)
   waste: { type: String }, 
   wasteDesc: { type: String },
   wasteRoute: { type: String },
 
   // --- 13. Raktározás és Egyéb ---
-  shelfLoad: { type: Number }, // ÚJ: Polc teherbírás
-  shelfLabelMissing: { type: String }, // ÚJ: Nincs jelölés
+  shelfLoad: { type: Number },
+  shelfLabelMissing: { type: String },
   storageRoom: { type: String },
   storageSize: { type: Number },
 
-  // Vegyes
+  // Vegyes anyagok
   mat_paper: { type: String },
   mat_clean: { type: String },
   mat_paint: { type: String },
@@ -144,7 +154,7 @@ const SubmissionSchema = new Schema({
   mat_aero: { type: String },
   mat_other: { type: String },
 
-  notes: { type: String }, // Megjegyzés
+  notes: { type: String }, // Megjegyzés (Közös)
 
   // Rendszer adat
   submittedAt: { type: Date, default: Date.now },
