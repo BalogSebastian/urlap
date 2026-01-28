@@ -5,20 +5,22 @@ import nodemailer from 'nodemailer';
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    
+
     // Adatok kinyerése
     const email = formData.get('email') as string;
     const file = formData.get('file') as File;
-    
+
     // Adatlap adatai
     const companyName = formData.get('companyName') as string;
     const headquarters = formData.get('headquarters') as string;
     const siteAddress = formData.get('siteAddress') as string;
     const managerName = formData.get('managerName') as string;
-    
+
     // Kiválasztott opciók
-    const orderType = formData.get('orderType') as string; 
+    const orderType = formData.get('orderType') as string;
     const senderName = formData.get('senderName') as string; // "Jani" vagy "Márk"
+
+    const salutationName = formData.get('salutationName') as string;
 
     if (!email || !file) {
       return NextResponse.json({ error: 'Hiányzó adatok' }, { status: 400 });
@@ -38,10 +40,12 @@ export async function POST(req: Request) {
     });
 
     // --- LEVÉL HTML TARTALMA ---
-    // Módosítva: "Kedves Kolléga!" a Melinda helyett
+    // Módosítva: Dinamikus megszólítás
+    const greeting = salutationName ? `Kedves ${salutationName}!` : "Kedves Kolléga!";
+
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; color: #000000; font-size: 14px; line-height: 1.5;">
-        <p style="margin-bottom: 20px;">Kedves Kolléga!</p>
+        <p style="margin-bottom: 20px;">${greeting}</p>
         
         <p style="margin-bottom: 25px;">A mellékletben csatolom az elvégzendő munkához az adatokat. Kérdés esetén keress bátran minket! 😉</p>
         
@@ -68,10 +72,10 @@ export async function POST(req: Request) {
 
     // Levél küldése
     await transporter.sendMail({
-      from: `"${senderName}" <${process.env.EMAIL_USER}>`, 
+      from: `"${senderName}" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: `Adatlap - ${companyName}`,
-      html: htmlContent, 
+      html: htmlContent,
       attachments: [
         {
           filename: file.name,
