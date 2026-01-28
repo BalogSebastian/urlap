@@ -1,3 +1,4 @@
+// /app/adminadmin/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -71,7 +72,7 @@ export default function AdminPage() {
         }
     };
 
-    // --- MŰVELETEK (JAVÍTVA) ---
+    // --- MŰVELETEK ---
     const deleteSubmission = async (id: string) => {
         if (!confirm("Biztosan törölni szeretné véglegesen az adatbázisból?")) return;
         try {
@@ -180,6 +181,7 @@ export default function AdminPage() {
         return map[val] || val || "-";
     };
 
+    // --- PDF GENERÁTOR (JAVÍTOTT OLDALTÖRÉSSEL ÉS TÍPUS HIBÁVAL) ---
     const generatePDF = async (data: any, returnBlob = false) => {
         const doc = new jsPDF();
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
@@ -200,6 +202,8 @@ export default function AdminPage() {
         }
 
         const primaryColor = [20, 50, 120] as [number, number, number];
+        
+        // --- Címsor ---
         if (fontLoaded) doc.setFont("Roboto", "bold");
         doc.setFontSize(22);
         doc.setTextColor(...primaryColor);
@@ -227,82 +231,106 @@ export default function AdminPage() {
             cellPadding: { top: 6, bottom: 6, left: 2 }
         };
 
-        const tableBody = [
-            [{ content: '1. Cégadatok és Kapcsolattartás', colSpan: 2, styles: sectionStyle }],
-            ['Cég neve', data.companyName || '-'],
-            ['Székhely', data.headquarters || '-'],
-            ['Telephely', data.siteAddress || '-'],
-            ['Adószám', data.taxNumber || '-'],
-            ['Ügyvezető neve', data.managerName || '-'],
-            ['Ügyvezető tel.', data.managerPhone || '-'],
-            ['Ügyvezető email', data.managerEmail || '-'],
-            [{ content: '2. Tevékenység', colSpan: 2, styles: sectionStyle }],
-            ['Fő tevékenység', data.mainActivity || '-'],
-            ['Napi leírás', data.dailyActivity || '-'],
-            ['Működés jellege', activityTypes],
-            ['Eszközök', data.toolsUsed || '-'],
-            ['Spec. technológia', data.specialTech === 'yes' ? (data.specialTechDesc || 'Van') : 'Nincs'],
-            ['Alvállalkozók', `${data.subcontractors || '0'} fő`],
-            [{ content: '3. Munkakörülmények', colSpan: 2, styles: sectionStyle }],
-            ['Képernyős munka', tr(data.screenWork)],
-            ['Home Office', tr(data.homeOffice)],
-            ['Magasban végzett', tr(data.highWork)],
-            [{ content: '4. Épület és Helyiségek', colSpan: 2, styles: sectionStyle }],
-            ['Típus', tr(data.buildingType)],
-            ['Emelet / Szintek', data.floorNumber || '-'],
-            ['Terület', `${data.areaSize || '0'} m²`],
-            ['Helyiségek', rooms || '-'],
-            ['WC / Mosdó', tr(data.restroom)],
-            ['Kézmosó/Fertőtlenítő', tr(data.handSanitizer)],
-            ['Klíma / Fan-coil', tr(data.ac)],
-            [{ content: '5. Szerkezetek', colSpan: 2, styles: sectionStyle }],
-            ['Falazat', tr(data.walls)],
-            ['Födém', tr(data.ceiling)],
-            ['Tető típusa', tr(data.roofType)],
-            ['Tető fedése', tr(data.roofCover)],
-            ['Szigetelés (Dryvit)', tr(data.insulation)],
-            [{ content: '6. Létszám és Menekülés', colSpan: 2, styles: sectionStyle }],
-            ['Dolgozók', `${data.employees || '0'} fő`],
-            ['Ügyfelek (max)', `${data.clientsMax || '0'} fő`],
-            ['Kijáratok', `${data.exits || '0'} db`],
-            ['Főajtó', `${data.doorWidth || '0'} cm`],
-            ['Menekülési út', data.distM ? `${data.distM} méter` : `${data.distStep || '0'} lépés`],
-            ['Segítségre szoruló', data.disabled === 'yes' ? (data.disabledDesc || 'Van') : 'Nincs'],
-            [{ content: '7. Biztonsági felszerelések', colSpan: 2, styles: sectionStyle }],
-            ['Elsősegély doboz', tr(data.firstAid)],
-            ['Tűzoltó készülék', `${data.extCount || '0'} db`],
-            ['Kifüggesztett táblák', signs || '-'],
-            ['Vegyszerek', data.chemicals || 'Nincs megadva'],
-            [{ content: '8. Rendszerek és Gépészet', colSpan: 2, styles: sectionStyle }],
-            ['Rendszerek', join([data.sys_alarm, data.sys_sprinkler, data.sys_smoke, data.sys_manual])],
-            ['Vill. főkapcsoló', data.mainSwitch || '-'],
-            ['Gázellátás', tr(data.gasValve) + (data.gasLocation ? ` (${data.gasLocation})` : '')],
-            ['Kazán', data.boiler === 'yes' ? (data.boilerDesc || 'Van') : 'Nincs'],
-            [{ content: '9. Hulladék és Raktározás', colSpan: 2, styles: sectionStyle }],
-            ['Hulladék típusok', wastes || 'Nincs megadva'],
-            ['Polc teherbírás', data.shelfLoad ? `${data.shelfLoad} kg` : '-'],
-            ['Polc jelölés hiány', data.shelfLabelMissing ? 'Jelölés hiányzik!' : 'Rendben'],
-            ['Raktár helyiség', data.storageRoom === 'yes' ? `Van (${data.storageSize} m²)` : 'Nincs'],
-            [{ content: 'Egyéb megjegyzés', colSpan: 2, styles: sectionStyle }],
-            [{ content: data.notes || "Nincs.", colSpan: 2, styles: { fontStyle: 'italic', textColor: 80 } }],
+        // --- OLDALAK DEFINIÁLÁSA (ÚJ STRUKTÚRA) ---
+        const pageContent = [
+            // OLDAL 1: Cégadatok (1) + Tevékenység (2)
+            [
+                [{ content: '1. Cégadatok és Kapcsolattartás', colSpan: 2, styles: sectionStyle }],
+                ['Cég neve', data.companyName || '-'],
+                ['Székhely', data.headquarters || '-'],
+                ['Telephely', data.siteAddress || '-'],
+                ['Adószám', data.taxNumber || '-'],
+                ['Ügyvezető neve', data.managerName || '-'],
+                ['Ügyvezető tel.', data.managerPhone || '-'],
+                ['Ügyvezető email', data.managerEmail || '-'],
+                [{ content: '2. Tevékenység', colSpan: 2, styles: sectionStyle }],
+                ['Fő tevékenység', data.mainActivity || '-'],
+                ['Napi leírás', data.dailyActivity || '-'],
+                ['Működés jellege', activityTypes],
+                ['Eszközök', data.toolsUsed || '-'],
+                ['Spec. technológia', data.specialTech === 'yes' ? (data.specialTechDesc || 'Van') : 'Nincs'],
+                ['Alvállalkozók', `${data.subcontractors || '0'} fő`],
+            ],
+            // OLDAL 2: Munkakörülmények (3) + Épület (4) + Szerkezetek (5)
+            [
+                [{ content: '3. Munkakörülmények', colSpan: 2, styles: sectionStyle }],
+                ['Képernyős munka', tr(data.screenWork)],
+                ['Home Office', tr(data.homeOffice)],
+                ['Magasban végzett', tr(data.highWork)],
+                [{ content: '4. Épület és Helyiségek', colSpan: 2, styles: sectionStyle }],
+                ['Típus', tr(data.buildingType)],
+                ['Emelet / Szintek', data.floorNumber || '-'],
+                ['Terület', `${data.areaSize || '0'} m²`],
+                ['Helyiségek', rooms || '-'],
+                ['WC / Mosdó', tr(data.restroom)],
+                ['Kézmosó/Fertőtlenítő', tr(data.handSanitizer)],
+                ['Klíma / Fan-coil', tr(data.ac)],
+                [{ content: '5. Szerkezetek', colSpan: 2, styles: sectionStyle }],
+                ['Falazat', tr(data.walls)],
+                ['Födém', tr(data.ceiling)],
+                ['Tető típusa', tr(data.roofType)],
+                ['Tető fedése', tr(data.roofCover)],
+                ['Szigetelés (Dryvit)', tr(data.insulation)],
+            ],
+            // OLDAL 3: Létszám (6) + Biztonsági (7) + Rendszerek (8)
+            [
+                [{ content: '6. Létszám és Menekülés', colSpan: 2, styles: sectionStyle }],
+                ['Dolgozók', `${data.employees || '0'} fő`],
+                ['Ügyfelek (max)', `${data.clientsMax || '0'} fő`],
+                ['Kijáratok', `${data.exits || '0'} db`],
+                ['Főajtó', `${data.doorWidth || '0'} cm`],
+                ['Menekülési út', data.distM ? `${data.distM} méter` : `${data.distStep || '0'} lépés`],
+                ['Segítségre szoruló', data.disabled === 'yes' ? (data.disabledDesc || 'Van') : 'Nincs'],
+                [{ content: '7. Biztonsági felszerelések', colSpan: 2, styles: sectionStyle }],
+                ['Elsősegély doboz', tr(data.firstAid)],
+                ['Tűzoltó készülék', `${data.extCount || '0'} db`],
+                ['Kifüggesztett táblák', signs || '-'],
+                ['Vegyszerek', data.chemicals || 'Nincs megadva'],
+                [{ content: '8. Rendszerek és Gépészet', colSpan: 2, styles: sectionStyle }],
+                ['Rendszerek', join([data.sys_alarm, data.sys_sprinkler, data.sys_smoke, data.sys_manual])],
+                ['Vill. főkapcsoló', data.mainSwitch || '-'],
+                ['Gázellátás', tr(data.gasValve) + (data.gasLocation ? ` (${data.gasLocation})` : '')],
+                ['Kazán', data.boiler === 'yes' ? (data.boilerDesc || 'Van') : 'Nincs'],
+            ],
+            // OLDAL 4: Hulladék (9) + Megjegyzés
+            [
+                [{ content: '9. Hulladék és Raktározás', colSpan: 2, styles: sectionStyle }],
+                ['Hulladék típusok', wastes || 'Nincs megadva'],
+                ['Polc teherbírás', data.shelfLoad ? `${data.shelfLoad} kg` : '-'],
+                ['Polc jelölés hiány', data.shelfLabelMissing ? 'Jelölés hiányzik!' : 'Rendben'],
+                ['Raktár helyiség', data.storageRoom === 'yes' ? `Van (${data.storageSize} m²)` : 'Nincs'],
+                [{ content: 'Egyéb megjegyzés', colSpan: 2, styles: sectionStyle }],
+                [{ content: data.notes || "Nincs.", colSpan: 2, styles: { fontStyle: 'italic', textColor: 80 } }],
+            ]
         ];
 
-        autoTable(doc, {
-            startY: 40,
-            body: tableBody,
-            theme: 'grid',
-            pageBreak: 'auto',
-            margin: { top: 25, bottom: 30, left: 20, right: 14 },
-            styles: { font: fontLoaded ? "Roboto" : undefined, fontSize: 10, cellPadding: 4 },
-            columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold' } },
-            didDrawPage: (d) => {
-                const h = doc.internal.pageSize.height;
-                doc.setFillColor(...primaryColor);
-                doc.rect(0, 0, 8, h, "F");
-                doc.setFontSize(8);
-                doc.setTextColor(150);
-                doc.text(`Trident Shield Group Kft. | ${d.pageNumber}. oldal`, 20, h - 10);
+        // --- TÁBLÁZATOK GENERÁLÁSA ---
+        let currentY = 40;
+
+        pageContent.forEach((pageBody, index) => {
+            if (index > 0) {
+                doc.addPage();
+                currentY = 30;
             }
+
+            autoTable(doc, {
+                startY: currentY,
+                body: pageBody,
+                theme: 'grid',
+                pageBreak: 'auto', 
+                margin: { top: 25, bottom: 30, left: 20, right: 14 },
+                styles: { font: fontLoaded ? "Roboto" : undefined, fontSize: 10, cellPadding: 4 },
+                columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold' } },
+                didDrawPage: (d) => {
+                    const h = doc.internal.pageSize.height;
+                    doc.setFillColor(...primaryColor);
+                    doc.rect(0, 0, 8, h, "F");
+                    doc.setFontSize(8);
+                    doc.setTextColor(150);
+                    // JAVÍTVA: doc.getNumberOfPages() a helyes publikus metódus
+                    doc.text(`Trident Shield Group Kft. | ${doc.getNumberOfPages()}. oldal`, 20, h - 10);
+                }
+            });
         });
 
         if (returnBlob) return doc.output("blob");
