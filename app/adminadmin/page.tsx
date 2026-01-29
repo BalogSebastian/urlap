@@ -47,7 +47,8 @@ export default function AdminPage() {
             const res = await fetch("/api/submissions");
             const data = await res.json();
             if (res.ok) {
-                const fireData = data.filter((item: any) => item.formType !== 'vbs');
+                // Szűrés: Csak a 'fire' (Tűzvédelmi) adatlapok. (Ha nincs típus, akkor is ide tartozik alapértelmezetten)
+                const fireData = data.filter((item: any) => !item.formType || item.formType === 'fire');
                 setSubmissions(fireData);
             }
             else console.error("API Hiba:", data.error);
@@ -59,6 +60,7 @@ export default function AdminPage() {
     };
 
     useEffect(() => {
+        console.log("Admin Dashboard Loaded - Filter Logic: Strict Fire Only");
         if (isAuthenticated) fetchSubmissions();
     }, [isAuthenticated]);
 

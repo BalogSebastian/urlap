@@ -43,8 +43,8 @@ export default function AdminVBFPage() {
       const res = await fetch("/api/submissions");
       const data = await res.json();
       if (res.ok) {
-        // Szűrés: Csak a 'vbs' típusúak
-        const vbsData = data.filter((item: any) => item.formType === 'vbs');
+        // Szűrés: Csak a 'vbs' vagy 'vbf' típusúak
+        const vbsData = data.filter((item: any) => item.formType === 'vbs' || item.formType === 'vbf');
         setSubmissions(vbsData);
       }
     } catch (err) { console.error(err); }
