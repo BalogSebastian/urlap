@@ -151,7 +151,7 @@ export default function FireSafetyForm() {
                             ${activeTab === 'vbf' ? 'text-orange-600' : ''}
                             ${activeTab === 'hccp' ? 'text-slate-600' : ''}
                         `}>
-                            {activeTab === 'fire' && "Tűzvédelmi Adatlap"}
+                            {activeTab === 'fire' && "Tűz- és Munkavédelmi Adatlap"}
                             {activeTab === 'vbf' && "VBF Megrendelő Adatlap"}
                             {activeTab === 'hccp' && "HCCP Dokumentáció"}
                         </span>

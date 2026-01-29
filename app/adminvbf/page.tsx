@@ -147,6 +147,22 @@ export default function AdminVBFPage() {
 
     const primaryColor = [220, 100, 0] as [number, number, number]; // Narancs
 
+    // --- LOGO BETÖLTÉS ---
+    let logoBase64: string | null = null;
+    try {
+      const logoRes = await fetch("/munkavedelmiszakiLOGO.png");
+      if (logoRes.ok) {
+        const logoBuf = await logoRes.arrayBuffer();
+        logoBase64 = arrayBufferToBase64(logoBuf);
+      }
+    } catch (e) { console.error("Logo betöltési hiba:", e); }
+
+    // --- Címsor & Logo ---
+    if (logoBase64) {
+      // JAVÍTÁS: Feljebb rakva (Y=5)
+      doc.addImage(logoBase64, 'PNG', 165, 5, 25, 25);
+    }
+
     if (fontLoaded) doc.setFont("Roboto", "bold");
     doc.setFontSize(22);
     doc.setTextColor(...primaryColor);
@@ -196,7 +212,11 @@ export default function AdminVBFPage() {
       body: tableBody,
       theme: 'grid',
       styles: { font: fontLoaded ? "Roboto" : undefined, fontSize: 10, textColor: [40, 40, 40], cellPadding: 4, valign: 'middle', lineColor: [230, 230, 230] },
-      columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold', textColor: [80, 80, 80] }, 1: { cellWidth: 'auto', fontStyle: 'normal' } },
+      // JAVÍTÁS: column 1 (Válaszok) is félkövér (fontStyle: 'bold')
+      columnStyles: {
+        0: { cellWidth: 70, fontStyle: 'bold', textColor: [80, 80, 80] },
+        1: { cellWidth: 'auto', fontStyle: 'bold' }
+      },
       didDrawPage: function (data) {
         const pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
         doc.setFillColor(...primaryColor);

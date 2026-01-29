@@ -203,9 +203,25 @@ export default function AdminPage() {
             console.error("FONT HIBA:", e);
         }
 
+        // --- LOGO BETÖLTÉS ---
+        let logoBase64: string | null = null;
+        try {
+            const logoRes = await fetch("/munkavedelmiszakiLOGO.png");
+            if (logoRes.ok) {
+                const logoBuf = await logoRes.arrayBuffer();
+                logoBase64 = arrayBufferToBase64(logoBuf);
+            }
+        } catch (e) { console.error("Logo betöltési hiba:", e); }
+
         const primaryColor = [20, 50, 120] as [number, number, number];
 
-        // --- Címsor ---
+        // --- Címsor & Logo ---
+        if (logoBase64) {
+            // Logo a jobb felső sarokban (A4 szélesség ~210mm)
+            // JAVÍTÁS: Feljebb rakva (Y=5), hogy ne lógjon bele a vonalba (Y=33)
+            doc.addImage(logoBase64, 'PNG', 165, 5, 25, 25);
+        }
+
         if (fontLoaded) doc.setFont("Roboto", "bold");
         doc.setFontSize(22);
         doc.setTextColor(...primaryColor);
@@ -322,7 +338,11 @@ export default function AdminPage() {
                 pageBreak: 'auto',
                 margin: { top: 25, bottom: 30, left: 20, right: 14 },
                 styles: { font: fontLoaded ? "Roboto" : undefined, fontSize: 10, cellPadding: 4 },
-                columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold' } },
+                // JAVÍTÁS: A válaszok (1-es oszlop) is félkövérek (fontStyle: 'bold')
+                columnStyles: {
+                    0: { cellWidth: 70, fontStyle: 'bold' },
+                    1: { fontStyle: 'bold' }
+                },
                 didDrawPage: (d) => {
                     const h = doc.internal.pageSize.height;
                     doc.setFillColor(...primaryColor);
