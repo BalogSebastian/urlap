@@ -202,7 +202,7 @@ export default function AdminPage() {
         }
 
         const primaryColor = [20, 50, 120] as [number, number, number];
-        
+
         // --- Címsor ---
         if (fontLoaded) doc.setFont("Roboto", "bold");
         doc.setFontSize(22);
@@ -317,7 +317,7 @@ export default function AdminPage() {
                 startY: currentY,
                 body: pageBody,
                 theme: 'grid',
-                pageBreak: 'auto', 
+                pageBreak: 'auto',
                 margin: { top: 25, bottom: 30, left: 20, right: 14 },
                 styles: { font: fontLoaded ? "Roboto" : undefined, fontSize: 10, cellPadding: 4 },
                 columnStyles: { 0: { cellWidth: 70, fontStyle: 'bold' } },
@@ -403,65 +403,107 @@ export default function AdminPage() {
             {/* --- EMAIL MODAL --- */}
             {emailItem && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6">
+                    <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6">
                         <div className="flex justify-between items-start mb-4">
                             <h2 className="text-xl font-bold">Email küldése</h2>
                             <button onClick={() => setEmailItem(null)} className="text-slate-400 hover:text-slate-600 text-2xl">×</button>
                         </div>
-                        <form onSubmit={handleSendEmail} className="space-y-4">
-                            <div className="mb-4">
-                                <label className="block text-sm font-bold mb-1">Címzett</label>
-                                <div className="flex gap-2 mb-2 p-1 bg-slate-100 rounded-lg">
-                                    <button type="button" onClick={() => { setEmailMode("preset"); setTargetEmail("info@kiajanlas.hu"); }} className={`flex-1 py-1.5 rounded-md text-sm font-bold transition-all ${emailMode === "preset" ? "bg-white shadow text-indigo-600" : "text-slate-500"}`}>Lista</button>
-                                    <button type="button" onClick={() => { setEmailMode("custom"); setTargetEmail(""); }} className={`flex-1 py-1.5 rounded-md text-sm font-bold transition-all ${emailMode === "custom" ? "bg-white shadow text-indigo-600" : "text-slate-500"}`}>Egyéni</button>
+                        <form onSubmit={handleSendEmail}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                {/* BAL OSZLOP: BEÁLLÍTÁSOK */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-bold mb-1">Címzett</label>
+                                        <div className="flex gap-2 mb-2 p-1 bg-slate-100 rounded-lg">
+                                            <button type="button" onClick={() => { setEmailMode("preset"); setTargetEmail("info@kiajanlas.hu"); }} className={`flex-1 py-1.5 rounded-md text-sm font-bold transition-all ${emailMode === "preset" ? "bg-white shadow text-indigo-600" : "text-slate-500"}`}>Lista</button>
+                                            <button type="button" onClick={() => { setEmailMode("custom"); setTargetEmail(""); }} className={`flex-1 py-1.5 rounded-md text-sm font-bold transition-all ${emailMode === "custom" ? "bg-white shadow text-indigo-600" : "text-slate-500"}`}>Egyéni</button>
+                                        </div>
+
+                                        {emailMode === "preset" ? (
+                                            <select value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
+                                                <option value="info@kiajanlas.hu">info@kiajanlas.hu</option>
+                                                <option value="sebimbalog@gmail.com">Sebi (sebimbalog@gmail.com)</option>
+                                                <option value="nemeth.janos21@gmail.com">Nemeth Janos (nemeth.janos21@gmail.com)</option>
+                                            </select>
+                                        ) : (
+                                            <input
+                                                type="email"
+                                                placeholder="pelda@email.hu"
+                                                value={targetEmail}
+                                                onChange={(e) => setTargetEmail(e.target.value)}
+                                                className="w-full border p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                                                required
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold mb-1">Megszólítás (Kedves ...)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="Pl: Melinda, Partnerünk"
+                                            value={salutationName}
+                                            onChange={(e) => setSalutationName(e.target.value)}
+                                            className="w-full border p-3 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold">Megrendelés típusa</label>
+                                        <div className="bg-slate-50 border p-3 rounded-lg space-y-2 max-h-40 overflow-y-auto">
+                                            {["Kockázatértékelés", "Komplex Tűzvédelem", "Komplex Munkavédelem", "Tűzvédelmi Szabályzat", "Munkavédelmi Szabályzat"].map((option) => (
+                                                <label key={option} className="flex items-center gap-2">
+                                                    <input type="checkbox" checked={selectedOrders.includes(option)} onChange={() => toggleOrder(option)} className="w-4 h-4" />
+                                                    <span className="text-sm">{option}</span>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-bold">Ki küldi?</label>
+                                        <select value={senderName} onChange={(e) => setSenderName(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50">
+                                            <option value="Jani">Jani</option>
+                                            <option value="Márk">Márk</option>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                {emailMode === "preset" ? (
-                                    <select value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
-                                        <option value="info@kiajanlas.hu">info@kiajanlas.hu</option>
-                                        <option value="sebimbalog@gmail.com">Sebi (sebimbalog@gmail.com)</option>
-                                        <option value="nemeth.janos21@gmail.com">Nemeth Janos (nemeth.janos21@gmail.com)</option>
-                                    </select>
-                                ) : (
-                                    <input
-                                        type="email"
-                                        placeholder="pelda@email.hu"
-                                        value={targetEmail}
-                                        onChange={(e) => setTargetEmail(e.target.value)}
-                                        className="w-full border p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500"
-                                        required
-                                    />
-                                )}
+                                {/* JOBB OSZLOP: ELŐNÉZET */}
+                                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm text-gray-600 flex flex-col h-full">
+                                    <p className="font-bold mb-2 text-indigo-900">Email Előnézet:</p>
+                                    <div className="bg-white p-4 rounded border border-indigo-100 shadow-sm leading-relaxed text-xs flex-1 overflow-y-auto">
+                                        <p className="mb-3 font-medium text-black">
+                                            {salutationName ? `Kedves ${salutationName}!` : "Kedves Kolléga!"}
+                                        </p>
+                                        <p className="mb-3">
+                                            A mellékletben csatolom az elvégzendő munkához az adatokat. Kérdés esetén keress bátran minket! 😉
+                                        </p>
+                                        <p className="font-bold mb-1 text-black">Ügyfél adatai:</p>
+                                        <div className="ml-2 mb-3 pl-2 border-l-2 border-indigo-100">
+                                            <p><span className="text-gray-500">Cégnév:</span> <span className="font-medium text-black">{emailItem.companyName || "-"}</span></p>
+                                            <p><span className="text-gray-500">Telephely:</span> {emailItem.siteAddress || "-"}</p>
+                                            <p><span className="text-gray-500">Székhely:</span> {emailItem.headquarters || "-"}</p>
+                                            <p><span className="text-gray-500">Ügyvezető:</span> {emailItem.managerName || "-"}</p>
+                                        </div>
+                                        <p className="mb-3">
+                                            <span className="font-bold text-black">Megrendelés:</span> <br />
+                                            <i className="text-indigo-700">{selectedOrders.length > 0 ? selectedOrders.join(", ") : "-"}</i>
+                                        </p>
+                                        <p>Köszönjük,</p>
+                                        <p className="font-bold text-lg text-black mt-1">{senderName}</p>
+                                        <p className="mt-4 text-gray-400 italic text-[10px] border-t pt-2">
+                                            (Minden információt megtalálsz a pdf-ben. A képeket is csatolom.)
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold mb-1">Megszólítás (Kedves ...)</label>
-                                <input
-                                    type="text"
-                                    placeholder="Pl: Melinda, Partnerünk"
-                                    value={salutationName}
-                                    onChange={(e) => setSalutationName(e.target.value)}
-                                    className="w-full border p-3 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500"
-                                />
-                            </div>
-
-                            <label className="block text-sm font-bold">Megrendelés típusa</label>
-                            <div className="bg-slate-50 border p-3 rounded-lg space-y-2 max-h-40 overflow-y-auto">
-                                {["Kockázatértékelés", "Komplex Tűzvédelem", "Komplex Munkavédelem", "Tűzvédelmi Szabályzat", "Munkavédelmi Szabályzat"].map((option) => (
-                                    <label key={option} className="flex items-center gap-2">
-                                        <input type="checkbox" checked={selectedOrders.includes(option)} onChange={() => toggleOrder(option)} className="w-4 h-4" />
-                                        <span className="text-sm">{option}</span>
-                                    </label>
-                                ))}
-                            </div>
-                            <label className="block text-sm font-bold">Ki küldi?</label>
-                            <select value={senderName} onChange={(e) => setSenderName(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50">
-                                <option value="Jani">Jani</option>
-                                <option value="Márk">Márk</option>
-                            </select>
-                            <div className="flex justify-end gap-3 pt-4 border-t">
-                                <button type="button" onClick={() => setEmailItem(null)} className="px-4 py-2 bg-slate-100 rounded-lg">Mégse</button>
-                                <button type="submit" disabled={sending} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold">{sending ? "Küldés..." : "🚀 Mehet"}</button>
+                            <div className="flex justify-end gap-3 pt-6 mt-2 border-t">
+                                <button type="button" onClick={() => setEmailItem(null)} className="px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors">Mégse</button>
+                                <button type="submit" disabled={sending} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 disabled:opacity-70 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all">
+                                    {sending ? "Küldés..." : "🚀 Email Küldése"}
+                                </button>
                             </div>
                         </form>
                     </div>
