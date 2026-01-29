@@ -91,7 +91,7 @@ export default function FireSafetyForm() {
                     <div className={`absolute top-1.5 bottom-1.5 w-[140px] rounded-xl transition-all duration-300 ease-in-out shadow-sm
                         ${activeTab === 'fire' ? 'left-1.5 bg-cyan-500' : ''}
                         ${activeTab === 'vbf' ? 'left-[148px] bg-orange-500' : ''}
-                        ${activeTab === 'hccp' ? 'left-[290px] bg-slate-500' : ''}
+                        ${activeTab === 'hccp' ? 'left-[290px] bg-emerald-500' : ''}
                     `}></div>
 
                     <button
@@ -135,8 +135,8 @@ export default function FireSafetyForm() {
                 )}
                 {activeTab === 'hccp' && (
                     <>
-                        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-slate-400 rounded-full blur-3xl opacity-15"></div>
-                        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-slate-200 rounded-full blur-3xl opacity-15"></div>
+                        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-emerald-400 rounded-full blur-3xl opacity-15"></div>
+                        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-emerald-200 rounded-full blur-3xl opacity-15"></div>
                     </>
                 )}
 
@@ -149,7 +149,7 @@ export default function FireSafetyForm() {
                         <span className={`
                             ${activeTab === 'fire' ? 'text-cyan-500' : ''}
                             ${activeTab === 'vbf' ? 'text-orange-600' : ''}
-                            ${activeTab === 'hccp' ? 'text-slate-600' : ''}
+                            ${activeTab === 'hccp' ? 'text-emerald-600' : ''}
                         `}>
                             {activeTab === 'fire' && "Tűz- és Munkavédelmi Adatlap"}
                             {activeTab === 'vbf' && "VBF Megrendelő Adatlap"}
@@ -166,7 +166,7 @@ export default function FireSafetyForm() {
                 <div className={`h-2 w-full bg-gradient-to-r 
                      ${activeTab === 'fire' ? 'from-cyan-500 via-cyan-400 to-cyan-300' : ''}
                      ${activeTab === 'vbf' ? 'from-orange-500 via-orange-400 to-amber-300' : ''}
-                     ${activeTab === 'hccp' ? 'from-slate-400 via-slate-300 to-slate-200' : ''}
+                     ${activeTab === 'hccp' ? 'from-emerald-400 via-emerald-300 to-emerald-200' : ''}
                 `}></div>
             </div>
 
@@ -175,15 +175,364 @@ export default function FireSafetyForm() {
                 {/* =========================================================================
             HCCP (FEJLESZTÉS ALATT)
            ========================================================================= */}
+                {/* =========================================================================
+            HCCP ADATLAP (Green Theme / Emerald)
+           ========================================================================= */}
                 {activeTab === 'hccp' && (
-                    <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border border-slate-100 shadow-sm min-h-[400px]">
-                        <div className="relative mb-8">
-                            <div className="absolute inset-0 bg-slate-200 rounded-full blur-xl animate-pulse"></div>
-                            <div className="relative text-6xl animate-bounce">🛠️</div>
-                        </div>
-                        <h2 className="text-3xl font-black text-slate-700 mb-3 animate-in fade-in slide-in-from-bottom-4 duration-700">Fejlesztés alatt...</h2>
-                        <p className="text-slate-500 font-medium max-w-md text-center leading-relaxed">Ez a modul hamarosan elérhető lesz. Kérjük, látogasson vissza később!</p>
-                    </div>
+                    <>
+                        {/* 1. Szolgáltatás */}
+                        <Section theme={currentTheme} number="01" title="Szolgáltatás és Típus" description="Válassza ki a megfelelő kategóriákat.">
+                            <div className="space-y-4 bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100">
+                                <Label theme={currentTheme}>Milyen szolgáltatást kér?</Label>
+                                <CheckboxCard theme={currentTheme} name="haccp_services" label="Új HACCP rendszer kiépítése" />
+                                <CheckboxCard theme={currentTheme} name="haccp_services" label="Meglévő rendszer felülvizsgálata" />
+                                <CheckboxCard theme={currentTheme} name="haccp_services" label="Nyitáshoz szükséges dokumentáció" />
+                                <CheckboxCard theme={currentTheme} name="haccp_services" label="Oktatás" />
+                            </div>
+
+                            <div className="mt-6 pt-6 border-t border-slate-100">
+                                <Label theme={currentTheme}>Rendelkezik korábbi HACCP kézikönyvvel?</Label>
+                                <div className="flex gap-6 mt-3">
+                                    <RadioSimple theme={currentTheme} name="haccp_prev_doc" value="Igen" label="Igen, rendelkezem" />
+                                    <RadioSimple theme={currentTheme} name="haccp_prev_doc" value="Nem" label="Nem rendelkezem" />
+                                </div>
+                            </div>
+
+                            <div className="mt-6 pt-6 border-t border-slate-100">
+                                <Label theme={currentTheme}>Milyen vendéglátó egység?</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                                    {/* Kézi lista a PDF alapján */}
+                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Étterem" label="Étterem" />
+                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Büfé" label="Büfé" />
+                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Cukrászda" label="Cukrászda" />
+                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Pékség" label="Pékség" />
+                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Kocsma / Bár" label="Kocsma / Bár" />
+                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Mozgóbolt" label="Mozgóbolt / Food Truck" />
+                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Egyéb" label="Egyéb" />
+                                </div>
+                            </div>
+                        </Section>
+
+                        {/* 2. Egység Adatai */}
+                        <Section theme={currentTheme} number="02" title="Egység adatai" description="Az üzemeltetés alapadatai.">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <InputGroup theme={currentTheme} label="Egység neve" name="companyName" placeholder="pl. Falatozó Kft." fullWidth required />
+                                <InputGroup theme={currentTheme} label="Egység címe" name="siteAddress" placeholder="Pontos cím" required />
+                                <InputGroup theme={currentTheme} label="Telefon" name="managerPhone" placeholder="+36..." fullWidth />
+                                <InputGroup theme={currentTheme} label="Email" name="managerEmail" placeholder="info@..." type="email" fullWidth />
+                            </div>
+
+                            <div className="mt-8 pt-6 border-t border-slate-100">
+                                <Label theme={currentTheme}>Felelős személy</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                                    <InputGroup theme={currentTheme} label="Név" name="managerName" placeholder="Teljes név" fullWidth />
+                                    <div>
+                                        <Label theme={currentTheme}>Beosztás</Label>
+                                        <div className="flex flex-col gap-2 mt-2">
+                                            <RadioSimple theme={currentTheme} name="haccp_manager" value="Üzletvezető" label="Üzletvezető" />
+                                            <RadioSimple theme={currentTheme} name="haccp_manager" value="Ügyvezető" label="Ügyvezető" />
+                                            <RadioSimple theme={currentTheme} name="haccp_manager" value="Egyéb" label="Egyéb kijelölt személy" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                <Label theme={currentTheme}>Van külön HACCP felügyelő személy?</Label>
+                                <input type="text" name="haccp_haccp_supervisor" className="w-full border rounded-xl p-3 mt-1 placeholder-gray-400" placeholder="Ha van, írja ide a nevét..." />
+                            </div>
+                        </Section>
+
+                        {/* 3. Helyiségek és Berendezések */}
+                        <Section theme={currentTheme} number="03" title="Helyiségek és Berendezések" description="Az ingatlan elosztása és felszereltsége.">
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 mb-6">
+                                <Label theme={currentTheme}>Helyiségek (Jelölje be ami van)</Label>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Iroda" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Vendégtér" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Műhely" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Konyha" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Raktár" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Szociális helyiség" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_staff_area" label="Személyzeti rész van" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <Label theme={currentTheme}>Biztonsági eszközök</Label>
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <CheckboxCard theme={currentTheme} name="haccp_equipment" label="Sprinkler" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_equipment" label="Füstérzékelő" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_first_aid" label="Elsősegély doboz" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label theme={currentTheme}>Tűzoltó készülékek</Label>
+                                    <input type="number" name="haccp_extinguishers" className="w-full border rounded-xl p-3 mt-2" placeholder="Darabszám" />
+
+                                    <div className="mt-4">
+                                        <Label theme={currentTheme}>Gázellátás</Label>
+                                        <div className="flex flex-col gap-2 mt-2">
+                                            <RadioSimple theme={currentTheme} name="haccp_gas" value="Nincs" label="Nincs használatban" />
+                                            <RadioSimple theme={currentTheme} name="haccp_gas" value="Vezetékes" label="Vezetékes gáz" />
+                                            <RadioSimple theme={currentTheme} name="haccp_gas" value="PB" label="PB gáz" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-slate-100">
+                                <Label theme={currentTheme}>Milyen táblák vannak kitéve?</Label>
+                                <div className="grid grid-cols-2 gap-3 mt-3">
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Elsősegély pont" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Tűzoltó készülék helye" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Gáz főelzáró" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Segélyhívó számok" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Dohányozni Tilos" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Menekülési útvonal" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Polc terhelhetőség" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="HACCP folyamatábra" />
+                                </div>
+                            </div>
+                        </Section>
+
+                        {/* 4. Termékek és Alapanyagok */}
+                        <Section theme={currentTheme} number="04" title="Termékek és Alapanyagok" description="Forgalmazott termékek köre és beszerzés.">
+                            <div className="mb-8">
+                                <Label theme={currentTheme}>Forgalmazott termékek köre (Válasszon)</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm">
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.1 Meleg-, hideg étel" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.2 Kávé, italok, szeszes italok" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.4 Cukrászati készítmény" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.5 Hús- és hentesáru" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.8 Kenyér- és pékáru" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.9 Édességáru, fagylalt, jégkrém" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.10 Tej, tejtermék" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_product_groups" label="1.11 Egyéb élelmiszer (liszt, olaj...)" />
+                                    <input type="text" name="haccp_product_groups" placeholder="Egyéb kategória..." className="w-full border rounded-xl p-3 mt-2" />
+                                </div>
+                            </div>
+
+                            <div className="bg-emerald-50/50 p-6 rounded-2xl border border-emerald-100 space-y-6">
+                                <div>
+                                    <Label theme={currentTheme}>Beszállítók és Alapanyagok</Label>
+                                    <textarea name="haccp_suppliers" className="w-full border rounded-xl p-3 h-20 mt-2" placeholder="Honnan érkezik liszt, tej, hús, zöldség? (Piac, Nagyker, ...)" />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label theme={currentTheme}>Van beszállítói igazolás?</Label>
+                                        <select name="haccp_supplier_verify" className="w-full border rounded-xl p-3 mt-1 bg-white">
+                                            <option value="Igen, számla/nyilatkozat">Igen (Számla / Nyilatkozat)</option>
+                                            <option value="Nincs">Nincs</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <Label theme={currentTheme}>Csomagolóanyag beszerzés</Label>
+                                        <input type="text" name="haccp_packaging" className="w-full border rounded-xl p-3 mt-1" placeholder="Honnan?" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label theme={currentTheme}>Allergének külön vannak?</Label>
+                                        <RadioSimple theme={currentTheme} name="haccp_allergen_separation" value="Igen" label="Igen" />
+                                        <RadioSimple theme={currentTheme} name="haccp_allergen_separation" value="Nem" label="Nem / Egy térben" />
+                                    </div>
+                                    <div>
+                                        <Label theme={currentTheme}>Allergén jelölés módja</Label>
+                                        <input type="text" name="haccp_allergen_labeling" className="w-full border rounded-xl p-3 mt-1" placeholder="pl. Étlapon, Táblán, Címkén" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Beszerzési Mátrixok */}
+                            <div className="mt-8">
+                                <h3 className="font-bold text-emerald-800 mb-4 border-b pb-2">Beszerzési Mátrix</h3>
+
+                                <div className="space-y-6">
+                                    {/* Hús */}
+                                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                                        <Label theme={currentTheme}>Hús beszerzése</Label>
+                                        <div className="grid grid-cols-3 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Feldolgozva" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Feldolgozatlan" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Mirelit" />
+                                        </div>
+                                    </div>
+                                    {/* Zöldség */}
+                                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                                        <Label theme={currentTheme}>Zöldség/Gyümölcs beszerzése</Label>
+                                        <div className="grid grid-cols-3 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Feldolgozva" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Feldolgozatlan" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Mirelit" />
+                                        </div>
+                                    </div>
+                                    {/* Hal */}
+                                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                                        <Label theme={currentTheme}>Hal beszerzése</Label>
+                                        <div className="grid grid-cols-3 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Feldolgozva" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Feldolgozatlan" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Mirelit" />
+                                        </div>
+                                    </div>
+                                    {/* Tojás */}
+                                    <div className="bg-white p-4 rounded-xl border border-gray-200">
+                                        <Label theme={currentTheme}>Tojás beszerzése</Label>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Szimpla" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Fertőtlenített" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Tojáslé" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Tojáspor" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Section>
+
+                        {/* 5. Technológia és Helyiségek */}
+                        <Section theme={currentTheme} number="05" title="Technológia és Helyiségek" description="Az üzemi folyamatok és területek.">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <Label theme={currentTheme}>Értékesítés módja</Label>
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <CheckboxCard theme={currentTheme} name="haccp_sales_method" label="Pult mögül (kiszolgálás)" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_sales_method" label="Önkiszolgáló" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_sales_method" label="Házhozszállítás" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label theme={currentTheme}>Előkészítő helyiségek</Label>
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <CheckboxCard theme={currentTheme} name="haccp_preparation_rooms" label="Hús előkészítő" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_preparation_rooms" label="Zöldség előkészítő" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_preparation_rooms" label="Tojás előkészítő" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_preparation_rooms" label="Csak konyhakész árút használunk" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-6">
+                                <Label theme={currentTheme}>Termelő helyiségek</Label>
+                                <div className="grid grid-cols-2 gap-3 mt-2">
+                                    <CheckboxCard theme={currentTheme} name="haccp_production_rooms" label="Melegkonyha" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_production_rooms" label="Hidegkonyha" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_production_rooms" label="Sütöde / Pékség" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_production_rooms" label="Cukrászüzem" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_production_rooms" label="Látványkonyha" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_production_rooms" label="Italkészítés" />
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label theme={currentTheme}>Alkalmazott technológiai lépések (Műveletek)</Label>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2 text-sm">
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Áruátvétel / Raktározás" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Előkészítés / Tisztítás" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Hőkezelés (Sütés/Főzés)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Lehűtés" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Fagyasztás" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Melegentartás" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Tálalás" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Kiszállítás" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_workflow" label="Mosogatás" />
+                                </div>
+                            </div>
+
+                            <div className="mt-6 pt-4 border-t border-slate-100">
+                                <Label theme={currentTheme}>Tészták készítése</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                                    <div>
+                                        <span className="text-xs font-bold text-gray-500">Pizza tészta:</span>
+                                        <div className="flex gap-2">
+                                            <RadioSimple theme={currentTheme} name="haccp_pasta_production" value="Helyben" label="Helyben" />
+                                            <RadioSimple theme={currentTheme} name="haccp_pasta_production" value="Beszállítva" label="Beszállítva" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <span className="text-xs font-bold text-gray-500">Egyéb tészta:</span>
+                                        <div className="flex gap-2">
+                                            <RadioSimple theme={currentTheme} name="haccp_other_pasta" value="Helyben" label="Helyben" />
+                                            <RadioSimple theme={currentTheme} name="haccp_other_pasta" value="Beszállítva" label="Beszállítva" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Section>
+
+                        {/* 6. Kiszállítás és Hulladék */}
+                        <Section theme={currentTheme} number="06" title="Kiszállítás és Hulladék" description="Logisztika és környezetvédelem.">
+                            <div className="mb-6">
+                                <Label theme={currentTheme}>Kiszállítás módja</Label>
+                                <div className="grid grid-cols-2 gap-3 mt-2">
+                                    <CheckboxCard theme={currentTheme} name="haccp_delivery" label="Wolt / Foodora / Bolt" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_delivery" label="Saját futár" />
+                                </div>
+                                <div className="mt-3">
+                                    <Label theme={currentTheme}>Ha van kiszállítás, ki végzi?</Label>
+                                    <div className="flex gap-4">
+                                        <RadioSimple theme={currentTheme} name="haccp_delivery_method" value="Saját" label="Saját alkalmazott/autó" />
+                                        <RadioSimple theme={currentTheme} name="haccp_delivery_method" value="Alvállalkozó" label="Alvállalkozó" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                                <Label theme={currentTheme}>Hulladékkezelés</Label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
+                                    <div>
+                                        <Label theme={currentTheme}>Használt olaj elszállító</Label>
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            <RadioSimple theme={currentTheme} name="haccp_oil_transport" value="Biofilter" label="Biofilter" />
+                                            <RadioSimple theme={currentTheme} name="haccp_oil_transport" value="Gastrooil" label="Gastrooil" />
+                                            <RadioSimple theme={currentTheme} name="haccp_oil_transport" value="Nincs/Folyamatban" label="Nincs / Folyamatban" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label theme={currentTheme}>Egyéb hulladék szállító</Label>
+                                        <input type="text" name="haccp_waste_transport" className="w-full border rounded-xl p-3 mt-1" placeholder="Cég neve..." />
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                    <Label theme={currentTheme}>Rágcsálóirtás van?</Label>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <RadioSimple theme={currentTheme} name="haccp_pest_control" value="Igen" label="Igen" />
+                                        <input type="text" name="haccp_pest_control_company" className="flex-1 border-b border-gray-300 py-1 outline-none text-sm bg-transparent" placeholder="Ki végzi?" />
+                                    </div>
+                                </div>
+                            </div>
+                        </Section>
+
+                        {/* 7. Dokumentumok és Fotók */}
+                        <Section theme={currentTheme} number="07" title="Dokumentumok" description="Csatolmányok feltöltése.">
+                            <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="p-2.5 bg-emerald-600 rounded-xl text-white shadow-md">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                    </div>
+                                    <Label theme={currentTheme}>Kérjük, csatolja az alábbi dokumentumokat:</Label>
+                                </div>
+
+                                <ul className="list-disc list-inside text-sm text-slate-700 mb-6 pl-2 space-y-2">
+                                    <li><strong>Alaprajz / Skicc</strong> a telephelyről (kötelező)</li>
+                                    <li><strong>Étlap</strong> fotója (vagy fájl)</li>
+                                    <li><strong>Beszállítói igazolások</strong> (opcionális)</li>
+                                </ul>
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-emerald-700 uppercase mb-1 block">Alaprajz Feltöltése</label>
+                                        <input type="file" name="haccp_floor_plan" className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition-all cursor-pointer" />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-emerald-700 uppercase mb-1 block">Étlap Feltöltése</label>
+                                        <input type="file" name="haccp_menu_photo" className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition-all cursor-pointer" />
+                                    </div>
+                                </div>
+                            </div>
+                        </Section>
+                    </>
                 )}
 
                 {/* =========================================================================
@@ -595,29 +944,29 @@ export default function FireSafetyForm() {
                     </>
                 )}
 
-                {/* 11. Egyéb (Közös szekció) ha nem HCCP */}
-                {activeTab !== 'hccp' && (
-                    <Section theme={currentTheme} number={activeTab === 'fire' ? "11" : "04"} title="Megjegyzés" description="Bármi egyéb fontos információ.">
-                        <textarea
-                            name="notes"
-                            className={`w-full p-4 border border-gray-300 rounded-2xl shadow-sm focus:ring-4 min-h-[120px] outline-none transition-all placeholder-gray-400 ${currentTheme === 'cyan' ? 'focus:ring-cyan-100 focus:border-cyan-400' : 'focus:ring-orange-100 focus:border-orange-500'}`}
-                            placeholder="Írjon ide bármit, amit fontosnak tart..."
-                        ></textarea>
-                    </Section>
-                )}
+                {/* 11. Egyéb (Közös szekció) */}
+                <Section theme={currentTheme} number={activeTab === 'fire' ? "11" : "04"} title="Megjegyzés" description="Bármi egyéb fontos információ.">
+                    <textarea
+                        name="notes"
+                        className={`w-full p-4 border border-gray-300 rounded-2xl shadow-sm focus:ring-4 min-h-[120px] outline-none transition-all placeholder-gray-400 ${currentTheme === 'cyan' ? 'focus:ring-cyan-100 focus:border-cyan-400' : (currentTheme === 'orange' ? 'focus:ring-orange-100 focus:border-orange-500' : 'focus:ring-slate-100 focus:border-slate-400')}`}
+                        placeholder="Írjon ide bármit, amit fontosnak tart..."
+                    ></textarea>
+                </Section>
 
-                {/* Submit Gomb (ha nem HCCP) */}
-                {activeTab !== 'hccp' && (
-                    <div className="pt-8 pb-16">
-                        <button type="submit" disabled={loading} className={`group relative w-full flex justify-center py-5 px-6 border border-transparent text-lg font-bold rounded-2xl text-white shadow-2xl transform transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed ${activeTab === 'fire' ? 'bg-gradient-to-r from-cyan-600 to-cyan-400 hover:from-cyan-500 hover:to-cyan-300 shadow-cyan-200' : 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 shadow-orange-200'}`}>
-                            <span className="relative flex items-center gap-3">
-                                {loading ? "MENTÉS FOLYAMATBAN..." : (activeTab === 'fire' ? "ADATLAP BEKÜLDÉSE" : "MEGRENDELÉS KÜLDÉSE")}
-                                {!loading && <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>}
-                            </span>
-                        </button>
-                        <p className="text-center text-xs text-slate-400 mt-4">A beküldéssel hozzájárul az adatok feldolgozásához.</p>
-                    </div>
-                )}
+                {/* Submit Gomb */}
+                <div className="pt-8 pb-16">
+                    <button type="submit" disabled={loading} className={`group relative w-full flex justify-center py-5 px-6 border border-transparent text-lg font-bold rounded-2xl text-white shadow-2xl transform transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed 
+                        ${activeTab === 'fire' ? 'bg-gradient-to-r from-cyan-600 to-cyan-400 hover:from-cyan-500 hover:to-cyan-300 shadow-cyan-200' : ''}
+                        ${activeTab === 'vbf' ? 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 shadow-orange-200' : ''}
+                        ${activeTab === 'hccp' ? 'bg-gradient-to-r from-emerald-600 to-emerald-400 hover:from-emerald-500 hover:to-emerald-300 shadow-emerald-200' : ''}
+                    `}>
+                        <span className="relative flex items-center gap-3">
+                            {loading ? "MENTÉS FOLYAMATBAN..." : (activeTab === 'fire' ? "ADATLAP BEKÜLDÉSE" : "MEGRENDELÉS KÜLDÉSE")}
+                            {!loading && <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>}
+                        </span>
+                    </button>
+                    <p className="text-center text-xs text-slate-400 mt-4">A beküldéssel hozzájárul az adatok feldolgozásához.</p>
+                </div>
 
             </form>
         </div>
@@ -634,7 +983,7 @@ function Section({ number, title, description, children, theme = 'cyan' }: { num
     let accentClass = '';
     if (theme === 'cyan') accentClass = 'bg-cyan-50 text-cyan-600 border-cyan-100';
     if (theme === 'orange') accentClass = 'bg-orange-50 text-orange-600 border-orange-100';
-    if (theme === 'gray') accentClass = 'bg-slate-50 text-slate-600 border-slate-100';
+    if (theme === 'gray') accentClass = 'bg-emerald-50 text-emerald-600 border-emerald-100';
 
     return (
         <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-[0_4px_25px_-5px_rgba(0,0,0,0.05)] border border-slate-100 transition-all hover:shadow-[0_10px_35px_-5px_rgba(0,0,0,0.08)]">
@@ -660,6 +1009,7 @@ function InputGroup({ label, name, type = "text", placeholder, fullWidth, requir
     let focusClass = '';
     if (theme === 'cyan') focusClass = 'focus:border-cyan-400 focus:ring-cyan-500/10';
     if (theme === 'orange') focusClass = 'focus:border-orange-500 focus:ring-orange-500/10';
+    if (theme === 'gray') focusClass = 'focus:border-emerald-500 focus:ring-emerald-500/10';
 
     return (
         <div className={fullWidth ? "w-full" : ""}>
@@ -684,6 +1034,9 @@ function SelectableCard({ name, value, label, children, theme = 'cyan' }: any) {
     } else if (theme === 'orange') {
         themeClass = 'hover:border-orange-400 hover:ring-orange-100 has-[:checked]:border-orange-500 has-[:checked]:ring-orange-500 has-[:checked]:bg-orange-50/10';
         iconColor = 'text-orange-600';
+    } else if (theme === 'gray') {
+        themeClass = 'hover:border-emerald-400 hover:ring-emerald-100 has-[:checked]:border-emerald-500 has-[:checked]:ring-emerald-500 has-[:checked]:bg-emerald-50/10';
+        iconColor = 'text-emerald-600';
     }
 
     return (
@@ -710,6 +1063,9 @@ function CheckboxCard({ label, name, theme = 'cyan' }: { label: string, name: st
     } else if (theme === 'orange') {
         cardClass = 'hover:bg-orange-50 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50/30';
         checkClass = 'text-orange-600 focus:ring-orange-500';
+    } else if (theme === 'gray') {
+        cardClass = 'hover:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/30';
+        checkClass = 'text-emerald-600 focus:ring-emerald-500';
     }
 
     return (
@@ -755,6 +1111,9 @@ function RadioSimple({ name, value, label, theme = 'cyan' }: any) {
     } else if (theme === 'orange') {
         radioClass = 'checked:border-orange-600 checked:bg-orange-600';
         textHoverClass = 'group-hover:text-orange-700';
+    } else if (theme === 'gray') {
+        radioClass = 'checked:border-emerald-600 checked:bg-emerald-600';
+        textHoverClass = 'group-hover:text-emerald-600';
     }
 
     return (

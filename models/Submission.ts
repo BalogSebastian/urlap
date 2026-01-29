@@ -4,11 +4,60 @@ import mongoose, { Schema, models } from "mongoose";
 const SubmissionSchema = new Schema({
   // --- 0. ŰRLAP TÍPUSA (ÚJ) ---
   // Ez dönti el, hogy Tűzvédelmi ('fire') vagy VBS ('vbs') adatlap
-  formType: { type: String, default: 'fire' }, 
+  formType: { type: String, default: 'fire' },
 
   // --- VBS SPECIFIKUS MEZŐK (ÚJ) ---
   vbs_services: { type: String }, // Milyen vizsgálatot kér (vesszővel elválasztva)
   vbs_prev_doc: { type: String }, // Rendelkezik korábbi dokumentummal? (Igen/Nem)
+
+  // --- HACCP SPECIFIKUS MEZŐK (BŐVÍTETT) ---
+  haccp_services: { type: String }, // Szolgáltatás kiválasztása
+  haccp_prev_doc: { type: String }, // Van korábbi?
+  haccp_unit_type: { type: String }, // Egység típusa
+  haccp_manager: { type: String }, // Üzletvezető/Ügyvezető
+  haccp_food_types: { type: String }, // Forgalmazott ételek
+
+  // Helyiségek & Berendezések
+  haccp_rooms: { type: String }, // Iroda, Vendégtér, Műhely...
+  haccp_equipment: { type: String }, // Sprinkler, Füstérzékelő...
+  haccp_gas: { type: String }, // Gáz használat
+  haccp_first_aid: { type: String }, // Elsősegély
+  haccp_extinguishers: { type: Number }, // Tűzoltó db
+  haccp_signs: { type: String }, // Táblák szűrve
+
+  // Beszerzés & Alapanyagok
+  haccp_suppliers: { type: String }, // Kitől érkezik liszt, tej...
+  haccp_supplier_verify: { type: String }, // Számla/Nyilatkozat
+  haccp_packaging: { type: String }, // Csomagolóanyag honnan
+  haccp_allergen_separation: { type: String }, // Külön van?
+  haccp_allergen_labeling: { type: String }, // Jelölés módja
+  haccp_product_groups: { type: String }, // 1.1 - 1.12 kategóriák
+
+  // Működés
+  haccp_pest_control: { type: String }, // Rágcsálóirtás
+  haccp_staff_area: { type: String }, // Személyzeti rész
+  haccp_sales_method: { type: String }, // Önkiszolgáló / Pult
+  haccp_preparation_rooms: { type: String }, // Előkészítők
+  haccp_production_rooms: { type: String }, // Melegkonyha stb.
+  haccp_workflow: { type: String }, // Műveleti lépések
+  haccp_delivery: { type: String }, // Kiszállítás (Wolt, saját...)
+  haccp_delivery_method: { type: String }, // Saját/Alvállalkozó
+  haccp_oil_transport: { type: String }, // Olajszállítás
+  haccp_waste_transport: { type: String }, // Hulladék elszállítás
+  haccp_pasta_production: { type: String }, // Tészta
+  haccp_other_pasta: { type: String }, // Egyéb tészta
+
+  // Beszerzési mátrixok (JSON stringként vagy egyszerű szövegként)
+  haccp_meat_sourcing: { type: String },
+  haccp_veg_sourcing: { type: String },
+  haccp_fish_sourcing: { type: String },
+  haccp_egg_sourcing: { type: String },
+
+  // Egyéb
+  haccp_commercial_groups: { type: String }, // Kereskedelmi csoportok
+  haccp_haccp_supervisor: { type: String }, // Felügyelő személy
+  haccp_floor_plan: { type: String }, // Alaprajz (fájl név vagy url)
+  haccp_menu_photo: { type: String }, // Étlap fotó
 
   // ==========================================================
   // --- KÖZÖS ÉS TŰZVÉDELMI MEZŐK ---
@@ -19,7 +68,7 @@ const SubmissionSchema = new Schema({
   headquarters: { type: String }, // Székhely (Közös)
   siteAddress: { type: String }, // Telephely címe (Közös)
   taxNumber: { type: String },
-  
+
   // Ügyvezető adatai
   managerName: { type: String }, // Képviselő neve (Közös)
   managerPhone: { type: String }, // Képviselő telefon (Közös)
@@ -28,13 +77,13 @@ const SubmissionSchema = new Schema({
   // --- 2. Tevékenység és Működés ---
   mainActivity: { type: String }, // Tevékenységi kör (Közös)
   dailyActivity: { type: String },
-  
+
   employees: { type: Number, default: 0 },
   subcontractors: { type: Number, default: 0 },
   clientsMax: { type: Number, default: 0 },
-  
+
   toolsUsed: { type: String },
-  
+
   specialTech: { type: String, default: 'no' }, // yes / no
   specialTechDesc: { type: String },
 
@@ -83,10 +132,10 @@ const SubmissionSchema = new Schema({
   doorWidth: { type: String },
   altExit: { type: String },
   altExitWidth: { type: String },
-  
+
   disabled: { type: String, default: 'no' },
   disabledDesc: { type: String },
-  
+
   distM: { type: Number },
   distStep: { type: Number },
 
@@ -134,8 +183,8 @@ const SubmissionSchema = new Schema({
   waste_select: { type: String },
   waste_hazard: { type: String },
   waste_industrial: { type: String },
-  
-  waste: { type: String }, 
+
+  waste: { type: String },
   wasteDesc: { type: String },
   wasteRoute: { type: String },
 
