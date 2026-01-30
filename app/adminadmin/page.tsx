@@ -4,6 +4,17 @@
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+    FiMail,
+    FiEdit2,
+    FiFileText,
+    FiTrash2,
+    FiLogOut,
+    FiRefreshCw,
+    FiX,
+    FiCheck,
+    FiShield
+} from "react-icons/fi";
 
 // --- SEGÉDFÜGGVÉNY: Buffer konvertálása Base64-re ---
 function arrayBufferToBase64(buffer: ArrayBuffer) {
@@ -361,13 +372,26 @@ export default function AdminPage() {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-100">
-                <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
-                    <h1 className="text-2xl font-bold text-center text-slate-800 mb-6">Trident Admin Belépés</h1>
+            <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-50 via-white to-transparent -z-10"></div>
+                <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-white/50 w-full max-w-md">
+                    <div className="flex justify-center mb-6">
+                        <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg shadow-indigo-500/30">
+                            <FiShield />
+                        </div>
+                    </div>
+                    <h1 className="text-3xl font-black text-center text-slate-900 mb-2">Trident Admin</h1>
+                    <p className="text-center text-slate-500 mb-8 font-medium">Lépj be a folytatáshoz</p>
                     <form onSubmit={handleLogin} className="space-y-4">
-                        <input type="text" placeholder="admin" value={username} onChange={e => setUsername(e.target.value)} className="w-full p-3 border rounded-lg" />
-                        <input type="password" placeholder="admin" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-3 border rounded-lg" />
-                        <button className="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Belépés</button>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-400 uppercase ml-2">Felhasználónév</label>
+                            <input type="text" placeholder="admin" value={username} onChange={e => setUsername(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700" />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-slate-400 uppercase ml-2">Jelszó</label>
+                            <input type="password" placeholder="•••••" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700" />
+                        </div>
+                        <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold shadow-xl shadow-indigo-500/20 active:scale-95 transition-all mt-4">Bejelentkezés</button>
                     </form>
                 </div>
             </div>
@@ -375,156 +399,247 @@ export default function AdminPage() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
-            <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-                <div className="flex items-center gap-2">
-                    <div className="bg-indigo-900 text-white p-2 rounded-lg font-bold text-lg">TSG</div>
-                    <h1 className="text-xl font-bold text-slate-800">Trident Admin Dashboard</h1>
-                </div>
-                <button onClick={() => setIsAuthenticated(false)} className="text-sm text-red-600 font-medium hover:underline">Kijelentkezés</button>
-            </nav>
+        <div className="min-h-screen bg-[#f8fafc] text-slate-900 font-sans selection:bg-indigo-100">
+            {/* Dekorációs háttér elemek */}
+            <div className="fixed top-0 left-0 w-full h-64 bg-gradient-to-b from-indigo-50/50 to-transparent -z-10"></div>
 
-            <main className="max-w-7xl mx-auto p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold text-slate-900">Beérkezett Adatlapok</h2>
-                    <button onClick={fetchSubmissions} className="text-indigo-600 text-sm hover:underline">🔄 Frissítés</button>
-                </div>
+            {/* NAVBAR / HEADER */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <div className="flex items-center gap-2 text-indigo-600 font-bold tracking-wider text-xs uppercase mb-2">
+                            <span className="w-8 h-[2px] bg-indigo-600"></span>
+                            Trident Shield Group
+                        </div>
+                        <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+                            Tűzvédelmi <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">Adatlapok</span>
+                        </h1>
+                    </div>
 
-                {loading && <p className="text-center py-10">Betöltés...</p>}
+                    <div className="flex items-center gap-3">
+                        <button onClick={fetchSubmissions} className="p-3 bg-white hover:bg-indigo-50 text-indigo-600 rounded-xl shadow-sm border border-slate-200 transition-all active:scale-95" title="Frissítés">
+                            <FiRefreshCw className={loading ? "animate-spin" : ""} />
+                        </button>
+                        <button onClick={() => setIsAuthenticated(false)} className="px-4 py-3 bg-white hover:bg-rose-50 text-rose-500 rounded-xl shadow-sm border border-slate-200 font-bold text-sm flex items-center gap-2 transition-all active:scale-95">
+                            <FiLogOut /> Kijelentkezés
+                        </button>
+                    </div>
+                </header>
 
-                <div className="grid gap-4">
-                    {!loading && submissions.slice().reverse().map((sub, i) => (
-                        <div key={sub._id || i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4 hover:shadow-md transition-shadow">
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="text-xl font-bold text-slate-800 truncate">{sub.companyName || "Névtelen"}</h3>
-                                    {sub.notes && <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Megjegyzés</span>}
-                                </div>
-                                <p className="text-slate-500 text-sm mt-1">{sub.siteAddress} • Beküldve: {new Date(sub.createdAt).toLocaleString("hu-HU")}</p>
+                {/* KPI SZEKCIÓ (Opcionális, statisztika feeling) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
+                        <div className="flex justify-between items-start relative z-10">
+                            <div>
+                                <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Összes Beküldés</p>
+                                <h3 className="text-3xl font-black text-slate-800">{submissions.length}</h3>
                             </div>
-
-                            <div className="flex flex-wrap gap-2 justify-end">
-                                <button onClick={() => {
-                                    setEmailItem(sub);
-                                    setTargetEmail("info@kiajanlas.hu");
-                                    setEmailMode("preset");
-                                    setSalutationName("Partnerünk");
-                                    setSelectedOrders(["Kockázatértékelés"]);
-                                    setSenderName("Jani");
-                                }} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 flex items-center gap-2 border border-emerald-200">✉️ Email</button>
-
-                                <button onClick={() => setEditItem(sub)} className="bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 border border-yellow-200">✏️ Szerkesztés</button>
-                                <button onClick={() => generatePDF(sub)} className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 shadow-md">📄 PDF</button>
-                                <button onClick={() => deleteSubmission(sub._id)} className="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 border border-red-200">🗑️</button>
+                            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                                <FiFileText size={20} />
                             </div>
                         </div>
-                    ))}
+                    </div>
+                    <div className="bg-gradient-to-br from-indigo-600 to-violet-700 p-6 rounded-[2rem] shadow-xl shadow-indigo-500/20 text-white relative overflow-hidden">
+                        <div className="relative z-10">
+                            <p className="text-indigo-200 text-xs font-bold uppercase tracking-wider mb-1">Aktív Rendszer</p>
+                            <h3 className="text-2xl font-black">Fire Safety 2.0</h3>
+                            <p className="text-indigo-200 text-sm mt-2">Minden rendszer üzemkész.</p>
+                        </div>
+                        <div className="absolute -bottom-4 -right-4 text-white/10">
+                            <FiShield size={100} />
+                        </div>
+                    </div>
                 </div>
-            </main>
+
+                {/* LISTA */}
+                {loading ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                        <p className="text-slate-400 font-medium">Adatok betöltése...</p>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200/60 p-6 md:p-8">
+                        <div className="flex items-center justify-between mb-8 px-2">
+                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                                Legutóbbi Beküldések
+                            </h3>
+                            <span className="text-xs font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">{submissions.length} db</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            {submissions.slice().reverse().map((sub, i) => (
+                                <div key={sub._id || i} className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-3xl hover:bg-slate-50 border border-slate-100 hover:border-indigo-100 transition-all duration-300">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+                                            {sub.companyName ? sub.companyName.charAt(0).toUpperCase() : "?"}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-indigo-700 transition-colors">
+                                                {sub.companyName || "Névtelen"}
+                                            </h4>
+                                            <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-1.5">
+                                                <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
+                                                    📍 {sub.siteAddress}
+                                                </span>
+                                                <span className="text-xs font-semibold text-slate-400">
+                                                    📅 {new Date(sub.createdAt).toLocaleDateString("hu-HU")}
+                                                </span>
+                                                {sub.notes && (
+                                                    <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md uppercase tracking-wide">
+                                                        Megjegyzés
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 self-end md:self-center">
+                                        <button onClick={() => {
+                                            setEmailItem(sub);
+                                            setTargetEmail("info@kiajanlas.hu");
+                                            setEmailMode("preset");
+                                            setSalutationName("Partnerünk");
+                                            setSelectedOrders(["Kockázatértékelés"]);
+                                            setSenderName("Jani");
+                                        }} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all" title="Email küldése">
+                                            <FiMail size={18} />
+                                        </button>
+                                        <button onClick={() => setEditItem(sub)} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all" title="Szerkesztés">
+                                            <FiEdit2 size={18} />
+                                        </button>
+                                        <button onClick={() => generatePDF(sub)} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200 transition-all" title="PDF letöltése">
+                                            <FiFileText size={18} />
+                                        </button>
+                                        <button onClick={() => deleteSubmission(sub._id)} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all" title="Törlés">
+                                            <FiTrash2 size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
 
             {/* --- EMAIL MODAL --- */}
             {emailItem && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl p-6">
-                        <div className="flex justify-between items-start mb-4">
-                            <h2 className="text-xl font-bold">Email küldése</h2>
-                            <button onClick={() => setEmailItem(null)} className="text-slate-400 hover:text-slate-600 text-2xl">×</button>
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-4xl rounded-[2rem] shadow-2xl p-8 animate-in fade-in zoom-in duration-300">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2">
+                                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-lg"><FiMail /></div>
+                                Email küldése
+                            </h2>
+                            <button onClick={() => setEmailItem(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
+                                <FiX size={20} />
+                            </button>
                         </div>
                         <form onSubmit={handleSendEmail}>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* BAL OSZLOP: BEÁLLÍTÁSOK */}
-                                <div className="space-y-4">
+                                <div className="space-y-5">
                                     <div>
-                                        <label className="block text-sm font-bold mb-1">Címzett</label>
-                                        <div className="flex gap-2 mb-2 p-1 bg-slate-100 rounded-lg">
-                                            <button type="button" onClick={() => { setEmailMode("preset"); setTargetEmail("info@kiajanlas.hu"); }} className={`flex-1 py-1.5 rounded-md text-sm font-bold transition-all ${emailMode === "preset" ? "bg-white shadow text-indigo-600" : "text-slate-500"}`}>Lista</button>
-                                            <button type="button" onClick={() => { setEmailMode("custom"); setTargetEmail(""); }} className={`flex-1 py-1.5 rounded-md text-sm font-bold transition-all ${emailMode === "custom" ? "bg-white shadow text-indigo-600" : "text-slate-500"}`}>Egyéni</button>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Címzett</label>
+                                        <div className="flex gap-2 mb-3 p-1.5 bg-slate-100 rounded-xl">
+                                            <button type="button" onClick={() => { setEmailMode("preset"); setTargetEmail("info@kiajanlas.hu"); }} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${emailMode === "preset" ? "bg-white shadow text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}>Lista</button>
+                                            <button type="button" onClick={() => { setEmailMode("custom"); setTargetEmail(""); }} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${emailMode === "custom" ? "bg-white shadow text-indigo-600" : "text-slate-500 hover:text-slate-700"}`}>Egyéni</button>
                                         </div>
 
                                         {emailMode === "preset" ? (
-                                            <select value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500">
-                                                <option value="info@kiajanlas.hu">info@kiajanlas.hu</option>
-                                                <option value="sebimbalog@gmail.com">Sebi (sebimbalog@gmail.com)</option>
-                                                <option value="nemeth.janos21@gmail.com">Nemeth Janos (nemeth.janos21@gmail.com)</option>
-                                            </select>
+                                            <div className="relative">
+                                                <select value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} className="w-full appearance-none border border-slate-200 p-4 rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
+                                                    <option value="info@kiajanlas.hu">info@kiajanlas.hu</option>
+                                                    <option value="sebimbalog@gmail.com">Sebi (sebimbalog@gmail.com)</option>
+                                                    <option value="nemeth.janos21@gmail.com">Nemeth Janos (nemeth.janos21@gmail.com)</option>
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">▼</div>
+                                            </div>
                                         ) : (
                                             <input
                                                 type="email"
                                                 placeholder="pelda@email.hu"
                                                 value={targetEmail}
                                                 onChange={(e) => setTargetEmail(e.target.value)}
-                                                className="w-full border p-3 rounded-lg bg-white outline-none focus:ring-2 focus:ring-indigo-500"
+                                                className="w-full border border-slate-200 p-4 rounded-xl bg-white font-medium outline-none focus:ring-2 focus:ring-indigo-500"
                                                 required
                                             />
                                         )}
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-bold mb-1">Megszólítás (Kedves ...)</label>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Megszólítás</label>
                                         <input
                                             type="text"
                                             placeholder="Pl: Melinda, Partnerünk"
                                             value={salutationName}
                                             onChange={(e) => setSalutationName(e.target.value)}
-                                            className="w-full border p-3 rounded-lg bg-slate-50 outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="w-full border border-slate-200 p-4 rounded-xl bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-indigo-500"
                                         />
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-bold">Megrendelés típusa</label>
-                                        <div className="bg-slate-50 border p-3 rounded-lg space-y-2 max-h-40 overflow-y-auto">
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Megrendelés típusa</label>
+                                        <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-3 max-h-48 overflow-y-auto custom-scrollbar">
                                             {["Kockázatértékelés", "Komplex Tűzvédelem", "Komplex Munkavédelem", "Tűzvédelmi Szabályzat", "Munkavédelmi Szabályzat"].map((option) => (
-                                                <label key={option} className="flex items-center gap-2">
-                                                    <input type="checkbox" checked={selectedOrders.includes(option)} onChange={() => toggleOrder(option)} className="w-4 h-4" />
-                                                    <span className="text-sm">{option}</span>
+                                                <label key={option} className="flex items-center gap-3 cursor-pointer group">
+                                                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedOrders.includes(option) ? "bg-indigo-600 border-indigo-600" : "bg-white border-slate-300 group-hover:border-indigo-400"}`}>
+                                                        {selectedOrders.includes(option) && <FiCheck className="text-white text-xs" />}
+                                                    </div>
+                                                    <input type="checkbox" checked={selectedOrders.includes(option)} onChange={() => toggleOrder(option)} className="hidden" />
+                                                    <span className={`text-sm font-medium ${selectedOrders.includes(option) ? "text-indigo-900" : "text-slate-600"}`}>{option}</span>
                                                 </label>
                                             ))}
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-bold">Ki küldi?</label>
-                                        <select value={senderName} onChange={(e) => setSenderName(e.target.value)} className="w-full border p-3 rounded-lg bg-slate-50">
-                                            <option value="Jani">Jani</option>
-                                            <option value="Márk">Márk</option>
-                                        </select>
+                                        <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Aláírás</label>
+                                        <div className="relative">
+                                            <select value={senderName} onChange={(e) => setSenderName(e.target.value)} className="w-full appearance-none border border-slate-200 p-4 rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500">
+                                                <option value="Jani">Jani</option>
+                                                <option value="Márk">Márk</option>
+                                            </select>
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">▼</div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {/* JOBB OSZLOP: ELŐNÉZET */}
-                                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 text-sm text-gray-600 flex flex-col h-full">
-                                    <p className="font-bold mb-2 text-indigo-900">Email Előnézet:</p>
-                                    <div className="bg-white p-4 rounded border border-indigo-100 shadow-sm leading-relaxed text-xs flex-1 overflow-y-auto">
-                                        <p className="mb-3 font-medium text-black">
+                                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 flex flex-col h-full">
+                                    <p className="text-xs font-bold text-slate-400 uppercase mb-3 flex items-center gap-2">
+                                        <FiMail /> Előnézet
+                                    </p>
+                                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm leading-relaxed text-sm text-slate-600 flex-1 overflow-y-auto font-mono">
+                                        <p className="mb-4 font-bold text-slate-900">
                                             {salutationName ? `Kedves ${salutationName}!` : "Kedves Kolléga!"}
                                         </p>
-                                        <p className="mb-3">
+                                        <p className="mb-4">
                                             A mellékletben csatolom az elvégzendő munkához az adatokat. Kérdés esetén keress bátran minket! 😉
                                         </p>
-                                        <p className="font-bold mb-1 text-black">Ügyfél adatai:</p>
-                                        <div className="ml-2 mb-3 pl-2 border-l-2 border-indigo-100">
-                                            <p><span className="text-gray-500">Cégnév:</span> <span className="font-medium text-black">{emailItem.companyName || "-"}</span></p>
-                                            <p><span className="text-gray-500">Telephely:</span> {emailItem.siteAddress || "-"}</p>
-                                            <p><span className="text-gray-500">Székhely:</span> {emailItem.headquarters || "-"}</p>
-                                            <p><span className="text-gray-500">Ügyvezető:</span> {emailItem.managerName || "-"}</p>
+                                        <div className="bg-indigo-50/50 p-4 rounded-lg mb-4 border border-indigo-100">
+                                            <p className="text-xs font-bold text-indigo-400 uppercase mb-2">Ügyfél</p>
+                                            <p><span className="text-slate-400">Cégnév:</span> <strong className="text-slate-800">{emailItem.companyName || "-"}</strong></p>
+                                            <p><span className="text-slate-400">Cím:</span> {emailItem.siteAddress || "-"}</p>
+                                            <p><span className="text-slate-400">Székhely:</span> {emailItem.headquarters || "-"}</p>
                                         </div>
-                                        <p className="mb-3">
-                                            <span className="font-bold text-black">Megrendelés:</span> <br />
-                                            <i className="text-indigo-700">{selectedOrders.length > 0 ? selectedOrders.join(", ") : "-"}</i>
+                                        <p className="mb-2">
+                                            <span className="font-bold text-slate-800">Megrendelés:</span> <br />
+                                            <span className="text-indigo-600 font-medium">{selectedOrders.length > 0 ? selectedOrders.join(", ") : "-"}</span>
                                         </p>
-                                        <p>Köszönjük,</p>
-                                        <p className="font-bold text-lg text-black mt-1">{senderName}</p>
-                                        <p className="mt-4 text-gray-400 italic text-[10px] border-t pt-2">
-                                            (Minden információt megtalálsz a pdf-ben. A képeket is csatolom.)
-                                        </p>
+                                        <div className="mt-8 border-t border-slate-100 pt-4">
+                                            <p>Köszönjük,</p>
+                                            <p className="font-bold text-slate-900">{senderName}</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="flex justify-end gap-3 pt-6 mt-2 border-t">
-                                <button type="button" onClick={() => setEmailItem(null)} className="px-4 py-2 bg-slate-100 rounded-lg font-bold text-slate-600 hover:bg-slate-200 transition-colors">Mégse</button>
-                                <button type="submit" disabled={sending} className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 disabled:opacity-70 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all">
-                                    {sending ? "Küldés..." : "🚀 Email Küldése"}
+                            <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-slate-100">
+                                <button type="button" onClick={() => setEmailItem(null)} className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-colors">Mégse</button>
+                                <button type="submit" disabled={sending} className="px-8 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 disabled:opacity-70 flex items-center gap-2 transition-all active:scale-95">
+                                    {sending ? <FiRefreshCw className="animate-spin" /> : <FiMail />}
+                                    {sending ? "Küldés..." : "Email Küldése"}
                                 </button>
                             </div>
                         </form>
@@ -534,18 +649,22 @@ export default function AdminPage() {
 
             {/* --- EDIT MODAL (100% COMPLETE) --- */}
             {editItem && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col">
-                        <div className="bg-white border-b p-5 flex justify-between items-center sticky top-0 z-10">
-                            <h2 className="text-xl font-bold text-slate-800">Adatlap Szerkesztése</h2>
-                            <button onClick={() => setEditItem(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-[2rem] shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
+                        <div className="bg-white border-b border-slate-100 p-6 flex justify-between items-center z-10">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-800">Adatlap Szerkesztése</h2>
+                                <p className="text-slate-500 text-sm font-medium">Módosítások mentése az adatbázisba</p>
+                            </div>
+                            <button onClick={() => setEditItem(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
+                                <FiX size={24} />
+                            </button>
                         </div>
 
-                        <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto bg-slate-50/50">
+                        <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto bg-[#f8fafc] custom-scrollbar">
                             {/* 1. Cégadatok */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">1. Cég és Vezetés</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <EditSection title="1. Cég és Vezetés">
+                                <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
                                     <EditGroup label="Cég neve" name="companyName" val={editItem.companyName} onChange={handleEditChange} />
                                     <EditGroup label="Székhely" name="headquarters" val={editItem.headquarters} onChange={handleEditChange} />
                                     <EditGroup label="Telephely" name="siteAddress" val={editItem.siteAddress} onChange={handleEditChange} />
@@ -554,16 +673,15 @@ export default function AdminPage() {
                                     <EditGroup label="Ügyvezető tel" name="managerPhone" val={editItem.managerPhone} onChange={handleEditChange} />
                                     <EditGroup label="Ügyvezető email" name="managerEmail" val={editItem.managerEmail} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 2. Tevékenység */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">2. Tevékenység</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <EditSection title="2. Tevékenység">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
                                     <EditGroup label="Fő tevékenység" name="mainActivity" val={editItem.mainActivity} onChange={handleEditChange} />
                                     <EditGroup label="Napi leírás" name="dailyActivity" val={editItem.dailyActivity} onChange={handleEditChange} />
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
+                                <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-5">
                                     <EditGroup label="Üzlet?" name="type_shop" val={editItem.type_shop} onChange={handleEditChange} />
                                     <EditGroup label="Iroda?" name="type_office" val={editItem.type_office} onChange={handleEditChange} />
                                     <EditGroup label="Raktár?" name="type_warehouse" val={editItem.type_warehouse} onChange={handleEditChange} />
@@ -571,33 +689,31 @@ export default function AdminPage() {
                                     <EditGroup label="Szociális?" name="type_social" val={editItem.type_social} onChange={handleEditChange} />
                                     <EditGroup label="Oktatás?" name="type_education" val={editItem.type_education} onChange={handleEditChange} />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                     <EditGroup label="Eszközök" name="toolsUsed" val={editItem.toolsUsed} onChange={handleEditChange} />
                                     <EditGroup label="Spec Tech (yes/no)" name="specialTech" val={editItem.specialTech} onChange={handleEditChange} />
                                     <EditGroup label="Spec Tech Leírás" name="specialTechDesc" val={editItem.specialTechDesc} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 3. Munkakörülmények */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">3. Munkakörülmények</h3>
-                                <div className="grid grid-cols-3 gap-4">
+                            <EditSection title="3. Munkakörülmények">
+                                <div className="grid grid-cols-3 gap-5">
                                     <EditGroup label="Képernyő (yes/no)" name="screenWork" val={editItem.screenWork} onChange={handleEditChange} />
                                     <EditGroup label="Home Office (yes/no)" name="homeOffice" val={editItem.homeOffice} onChange={handleEditChange} />
                                     <EditGroup label="Magasban (yes/no)" name="highWork" val={editItem.highWork} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 4. Épület */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">4. Épület és Higiénia</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <EditSection title="4. Épület és Higiénia">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-5">
                                     <EditGroup label="Típus" name="buildingType" val={editItem.buildingType} onChange={handleEditChange} />
                                     <EditGroup label="Emelet" name="floorNumber" val={editItem.floorNumber} onChange={handleEditChange} />
                                     <EditGroup label="Terület" name="areaSize" val={editItem.areaSize} onChange={handleEditChange} />
                                     <EditGroup label="Megközelítés" name="access" val={editItem.access} onChange={handleEditChange} />
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-4">
+                                <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-5">
                                     <EditGroup label="Hely: Iroda" name="room_office" val={editItem.room_office} onChange={handleEditChange} />
                                     <EditGroup label="Hely: Vendég" name="room_guest" val={editItem.room_guest} onChange={handleEditChange} />
                                     <EditGroup label="Hely: Konyha" name="room_kitchen" val={editItem.room_kitchen} onChange={handleEditChange} />
@@ -605,46 +721,43 @@ export default function AdminPage() {
                                     <EditGroup label="Hely: Szoc." name="room_social" val={editItem.room_social} onChange={handleEditChange} />
                                     <EditGroup label="Hely: Műhely" name="room_workshop" val={editItem.room_workshop} onChange={handleEditChange} />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                     <EditGroup label="WC (yes/no)" name="restroom" val={editItem.restroom} onChange={handleEditChange} />
                                     <EditGroup label="Kézmosó (yes/no)" name="handSanitizer" val={editItem.handSanitizer} onChange={handleEditChange} />
                                     <EditGroup label="Klíma (yes/no)" name="ac" val={editItem.ac} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 5. Szerkezet */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">5. Szerkezetek</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <EditSection title="5. Szerkezetek">
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
                                     <EditGroup label="Falazat" name="walls" val={editItem.walls} onChange={handleEditChange} />
                                     <EditGroup label="Födém" name="ceiling" val={editItem.ceiling} onChange={handleEditChange} />
                                     <EditGroup label="Tető típus" name="roofType" val={editItem.roofType} onChange={handleEditChange} />
                                     <EditGroup label="Tető fedés" name="roofCover" val={editItem.roofCover} onChange={handleEditChange} />
                                     <EditGroup label="Szigetelés" name="insulation" val={editItem.insulation} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 6. Menekülés */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">6. Létszám és Menekülés</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <EditSection title="6. Létszám és Menekülés">
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
                                     <EditGroup label="Dolgozók" name="employees" val={editItem.employees} onChange={handleEditChange} />
                                     <EditGroup label="Ügyfél Max" name="clientsMax" val={editItem.clientsMax} onChange={handleEditChange} />
                                     <EditGroup label="Kijáratok" name="exits" val={editItem.exits} onChange={handleEditChange} />
                                     <EditGroup label="Ajtó (cm)" name="doorWidth" val={editItem.doorWidth} onChange={handleEditChange} />
                                     <EditGroup label="Távolság (m)" name="distM" val={editItem.distM} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 7. Biztonság */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">7. Biztonság és Táblák</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <EditSection title="7. Biztonság és Táblák">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                                     <EditGroup label="Elsősegély (yes/no)" name="firstAid" val={editItem.firstAid} onChange={handleEditChange} />
                                     <EditGroup label="Oltó db" name="extCount" val={editItem.extCount} onChange={handleEditChange} />
                                     <EditGroup label="Vegyszerek" name="chemicals" val={editItem.chemicals} onChange={handleEditChange} />
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <EditGroup label="Elsősegély tábla" name="sign_firstaid" val={editItem.sign_firstaid} onChange={handleEditChange} />
                                     <EditGroup label="Oltó tábla" name="sign_extinguisher" val={editItem.sign_extinguisher} onChange={handleEditChange} />
                                     <EditGroup label="Menekülés" name="sign_escape" val={editItem.sign_escape} onChange={handleEditChange} />
@@ -652,53 +765,53 @@ export default function AdminPage() {
                                     <EditGroup label="Dohányozni Tilos" name="sign_no_smoking" val={editItem.sign_no_smoking} onChange={handleEditChange} />
                                     <EditGroup label="Kamera" name="sign_camera" val={editItem.sign_camera} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 8. Rendszerek */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">8. Rendszerek és Gépészet</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                            <EditSection title="8. Rendszerek és Gépészet">
+                                <div className="grid grid-cols-2 md:grid-cols-5 gap-5 mb-5">
                                     <EditGroup label="Tűzjelző" name="sys_alarm" val={editItem.sys_alarm} onChange={handleEditChange} />
                                     <EditGroup label="Füstérzékelő" name="sys_smoke" val={editItem.sys_smoke} onChange={handleEditChange} />
                                     <EditGroup label="Sprinkler" name="sys_sprinkler" val={editItem.sys_sprinkler} onChange={handleEditChange} />
                                     <EditGroup label="Kézi jelzés" name="sys_manual" val={editItem.sys_manual} onChange={handleEditChange} />
                                     <EditGroup label="Nincs" name="sys_none" val={editItem.sys_none} onChange={handleEditChange} />
                                 </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
                                     <EditGroup label="Főkapcsoló" name="mainSwitch" val={editItem.mainSwitch} onChange={handleEditChange} />
                                     <EditGroup label="Gáz (no/yes/pb)" name="gasValve" val={editItem.gasValve} onChange={handleEditChange} />
                                     <EditGroup label="Gáz helye" name="gasLocation" val={editItem.gasLocation} onChange={handleEditChange} />
                                     <EditGroup label="Kazán (yes/no)" name="boiler" val={editItem.boiler} onChange={handleEditChange} />
                                     <EditGroup label="Kazán Leírás" name="boilerDesc" val={editItem.boilerDesc} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
                             {/* 9. Hulladék */}
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <h3 className="text-sm font-bold text-indigo-900 uppercase mb-4 border-b pb-2 tracking-wide">9. Hulladék és Raktár</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <EditSection title="9. Hulladék és Raktár">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mb-5">
                                     <EditGroup label="Kommunális" name="waste_communal" val={editItem.waste_communal} onChange={handleEditChange} />
                                     <EditGroup label="Szelektív" name="waste_select" val={editItem.waste_select} onChange={handleEditChange} />
                                     <EditGroup label="Veszélyes" name="waste_hazard" val={editItem.waste_hazard} onChange={handleEditChange} />
                                     <EditGroup label="Ipari" name="waste_industrial" val={editItem.waste_industrial} onChange={handleEditChange} />
                                 </div>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                                     <EditGroup label="Polc terhelés (kg)" name="shelfLoad" val={editItem.shelfLoad} onChange={handleEditChange} />
                                     <EditGroup label="Jelölés hiány?" name="shelfLabelMissing" val={editItem.shelfLabelMissing} onChange={handleEditChange} />
                                     <EditGroup label="Raktár helyiség?" name="storageRoom" val={editItem.storageRoom} onChange={handleEditChange} />
                                     <EditGroup label="Raktár méret" name="storageSize" val={editItem.storageSize} onChange={handleEditChange} />
                                 </div>
-                            </div>
+                            </EditSection>
 
-                            <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                                <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wide">Megjegyzés</label>
-                                <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded-lg p-3 h-32 outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-3">Megjegyzés</label>
+                                <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border border-slate-200 bg-slate-50 rounded-xl p-4 h-32 outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-700"></textarea>
                             </div>
                         </div>
 
-                        <div className="p-5 border-t bg-slate-50 flex justify-end gap-3 sticky bottom-0 z-10">
-                            <button onClick={() => setEditItem(null)} className="bg-white border px-4 py-2 rounded-lg font-bold">Mégse</button>
-                            <button onClick={saveEdit} className="bg-green-600 text-white px-8 py-2 rounded-lg font-bold hover:bg-green-700 shadow-lg">Szerver Mentés</button>
+                        <div className="p-6 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 z-10 bg-white">
+                            <button onClick={() => setEditItem(null)} className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-colors">Mégse</button>
+                            <button onClick={saveEdit} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all active:scale-95 flex items-center gap-2">
+                                <FiCheck size={20} /> Mentés
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -707,16 +820,30 @@ export default function AdminPage() {
     );
 }
 
+// UI Segéd
+function EditSection({ title, children }: { title: string, children: React.ReactNode }) {
+    return (
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative">
+            <div className="absolute top-0 left-6 -translate-y-1/2 bg-white px-2 text-indigo-600 font-bold text-xs uppercase tracking-widest border border-slate-100 rounded-full shadow-sm">
+                {title}
+            </div>
+            <div className="pt-2">
+                {children}
+            </div>
+        </div>
+    );
+}
+
 function EditGroup({ label, name, val, onChange }: any) {
     return (
         <div>
-            <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase truncate" title={label}>{label}</label>
+            <label className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase truncate" title={label}>{label}</label>
             <input
                 type="text"
                 name={name}
                 value={val || ""}
                 onChange={onChange}
-                className="w-full border border-gray-200 bg-slate-50 rounded-lg px-2 py-1.5 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 text-sm font-medium transition-all"
+                className="w-full border border-slate-200 bg-slate-50 rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 text-sm font-semibold transition-all placeholder:text-slate-300"
             />
         </div>
     );

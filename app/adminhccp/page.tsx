@@ -1,8 +1,20 @@
+// /app/adminhccp/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+   FiMail,
+   FiEdit2,
+   FiFileText,
+   FiTrash2,
+   FiLogOut,
+   FiRefreshCw,
+   FiX,
+   FiCheck,
+   FiClipboard
+} from "react-icons/fi";
 
 // Segédfüggvény: ArrayBuffer -> Base64
 function arrayBufferToBase64(buffer: ArrayBuffer) {
@@ -107,11 +119,7 @@ export default function AdminHCCPPage() {
          const result = await res.json();
 
          if (res.ok) {
-            if (result.previewUrl) {
-               alert(`HCCP Email elküldve (Ethereal teszt). Preview URL:\n${result.previewUrl}`);
-            } else {
-               alert(`HCCP Email elküldve!\nCímzett: ${targetEmail}`);
-            }
+            alert(`HCCP Email elküldve!\nCímzett: ${targetEmail}`);
             setEmailItem(null);
          } else {
             alert("Hiba: " + (result.error || JSON.stringify(result)));
@@ -154,14 +162,17 @@ export default function AdminHCCPPage() {
          }
       } catch (e) { }
 
+      if (fontLoaded) doc.setFont("Roboto", "bold");
       doc.setFontSize(22);
       doc.setTextColor(...primaryColor);
       doc.text("Trident Shield Group Kft.", 20, 20);
 
+      if (fontLoaded) doc.setFont("Roboto", "normal");
       doc.setFontSize(12);
       doc.setTextColor(80);
-      doc.text("HCCP Dokumentáció Adatlap (Részletes)", 20, 28);
+      doc.text("HCCP Dokumentáció Adatlap", 20, 28);
       doc.setDrawColor(...primaryColor);
+      doc.setLineWidth(0.5);
       doc.line(20, 33, 190, 33);
 
       const sectionStyle = {
@@ -260,7 +271,7 @@ export default function AdminHCCPPage() {
             doc.setFontSize(8);
             doc.setTextColor(150);
             if (fontLoaded) doc.setFont("Roboto", "normal");
-            doc.text(`Trident Shield Group | HCCP | ${data.pageNumber}. oldal`, 20, doc.internal.pageSize.getHeight() - 10);
+            doc.text(`Trident Shield Group Kft. | HCCP | ${data.pageNumber}. oldal`, 20, doc.internal.pageSize.getHeight() - 10);
          },
       });
 
@@ -271,13 +282,26 @@ export default function AdminHCCPPage() {
 
    if (!isAuthenticated) {
       return (
-         <div className="min-h-screen flex items-center justify-center bg-slate-100">
-            <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-200">
-               <h1 className="text-2xl font-bold text-center text-slate-800 mb-6">Trident HCCP Admin</h1>
+         <div className="min-h-screen bg-[#f0fdf4] flex flex-col items-center justify-center p-4">
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-emerald-50 via-white to-transparent -z-10"></div>
+            <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-white/50 w-full max-w-md">
+               <div className="flex justify-center mb-6">
+                  <div className="w-16 h-16 bg-emerald-600 rounded-2xl flex items-center justify-center text-white text-3xl shadow-lg shadow-emerald-500/30">
+                     <FiClipboard />
+                  </div>
+               </div>
+               <h1 className="text-3xl font-black text-center text-slate-900 mb-2">Trident Admin</h1>
+               <p className="text-center text-slate-500 mb-8 font-medium">Lépj be a folytatáshoz</p>
                <form onSubmit={handleLogin} className="space-y-4">
-                  <input type="text" placeholder="admin" value={username} onChange={e => setUsername(e.target.value)} className="w-full p-3 border rounded-lg" />
-                  <input type="password" placeholder="admin" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-3 border rounded-lg" />
-                  <button className="w-full bg-emerald-600 text-white p-3 rounded-lg font-bold">Belépés</button>
+                  <div className="space-y-1">
+                     <label className="text-xs font-bold text-slate-400 uppercase ml-2">Felhasználónév</label>
+                     <input type="text" placeholder="admin" value={username} onChange={e => setUsername(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all font-bold text-slate-700" />
+                  </div>
+                  <div className="space-y-1">
+                     <label className="text-xs font-bold text-slate-400 uppercase ml-2">Jelszó</label>
+                     <input type="password" placeholder="•••••" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all font-bold text-slate-700" />
+                  </div>
+                  <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-xl font-bold shadow-xl shadow-emerald-500/20 active:scale-95 transition-all mt-4">Bejelentkezés</button>
                </form>
             </div>
          </div>
@@ -285,237 +309,371 @@ export default function AdminHCCPPage() {
    }
 
    return (
-      <div className="min-h-screen bg-slate-50">
-         <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-            <div className="flex items-center gap-2">
-               <div className="bg-emerald-600 text-white p-2 rounded-lg font-bold text-lg">TSG</div>
-               <h1 className="text-xl font-bold text-slate-800">HCCP Admin Dashboard</h1>
-            </div>
-            <button onClick={() => setIsAuthenticated(false)} className="text-sm text-red-600 font-medium hover:underline">Kijelentkezés</button>
-         </nav>
+      <div className="min-h-screen bg-[#f0fdf4] text-slate-900 font-sans selection:bg-emerald-100">
+         <div className="fixed top-0 left-0 w-full h-64 bg-gradient-to-b from-emerald-50/50 to-transparent -z-10"></div>
 
-         <main className="max-w-7xl mx-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-               <h2 className="text-2xl font-bold text-slate-900">Beérkezett HCCP Megrendelések</h2>
-               <button onClick={fetchSubmissions} className="text-emerald-600 text-sm hover:underline">🔄 Frissítés</button>
-            </div>
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+               <div>
+                  <div className="flex items-center gap-2 text-emerald-600 font-bold tracking-wider text-xs uppercase mb-2">
+                     <span className="w-8 h-[2px] bg-emerald-600"></span>
+                     Trident Shield Group
+                  </div>
+                  <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
+                     HACCP <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">Rendszer</span>
+                  </h1>
+               </div>
+               <div className="flex items-center gap-3">
+                  <button onClick={fetchSubmissions} className="p-3 bg-white hover:bg-emerald-50 text-emerald-600 rounded-xl shadow-sm border border-slate-200 transition-all active:scale-95" title="Frissítés">
+                     <FiRefreshCw className={loading ? "animate-spin" : ""} />
+                  </button>
+                  <button onClick={() => setIsAuthenticated(false)} className="px-4 py-3 bg-white hover:bg-rose-50 text-rose-500 rounded-xl shadow-sm border border-slate-200 font-bold text-sm flex items-center gap-2 transition-all active:scale-95">
+                     <FiLogOut /> Kijelentkezés
+                  </button>
+               </div>
+            </header>
 
-            {loading && <p className="text-center py-10">Betöltés...</p>}
-
-            <div className="grid gap-4">
-               {!loading && submissions.slice().reverse().map((sub, i) => (
-                  <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col lg:flex-row justify-between items-center gap-4 hover:shadow-md transition-shadow">
-                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                           <span className="text-2xl">🛡️</span>
-                           <h3 className="text-xl font-bold text-slate-800 truncate">{sub.companyName || "Névtelen"}</h3>
-                        </div>
-                        <p className="text-slate-500 text-sm mt-1 ml-9">{sub.haccp_services}</p>
-                        <p className="text-slate-400 text-xs mt-1 ml-9">{new Date(sub.createdAt).toLocaleString("hu-HU")}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+               <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden">
+                  <div className="flex justify-between items-start relative z-10">
+                     <div>
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Összes Beküldés</p>
+                        <h3 className="text-3xl font-black text-slate-800">{submissions.length}</h3>
                      </div>
-
-                     <div className="flex flex-wrap gap-2 justify-end">
-                        <button onClick={() => {
-                           setEmailItem(sub);
-                           setTargetEmail("sebimbalog@gmail.com");
-                           setEmailMode("preset");
-                           setSalutationName("Partnerünk");
-                           setSenderName("Sebastian");
-                        }} className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-lg font-bold hover:bg-emerald-100 flex items-center gap-2 border border-emerald-200">
-                           ✉️ Email
-                        </button>
-                        <button onClick={() => setEditItem(sub)} className="bg-yellow-50 text-yellow-600 px-4 py-2 rounded-lg font-bold hover:bg-yellow-100 border border-yellow-200">
-                           ✏️ Szerkesztés
-                        </button>
-                        <button onClick={() => generatePDF(sub)} className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-emerald-700 shadow-md">
-                           📄 PDF
-                        </button>
-                        <button onClick={() => deleteSubmission(sub._id)} className="bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 border border-red-200">
-                           🗑️
-                        </button>
+                     <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <FiFileText size={20} />
                      </div>
                   </div>
-               ))}
-               {!loading && submissions.length === 0 && <p className="text-center text-slate-400 py-10">Nincs HCCP megrendelés.</p>}
+               </div>
+               <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-[2rem] shadow-xl shadow-emerald-500/20 text-white relative overflow-hidden">
+                  <div className="relative z-10">
+                     <p className="text-emerald-100 text-xs font-bold uppercase tracking-wider mb-1">Aktív Rendszer</p>
+                     <h3 className="text-2xl font-black">Food Safety 1.0</h3>
+                     <p className="text-emerald-100 text-sm mt-2">Minden rendszer üzemkész.</p>
+                  </div>
+                  <div className="absolute -bottom-4 -right-4 text-white/10">
+                     <FiClipboard size={100} />
+                  </div>
+               </div>
             </div>
-         </main>
+
+            {loading ? (
+               <div className="flex flex-col items-center justify-center py-20">
+                  <div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
+                  <p className="text-slate-400 font-medium">Adatok betöltése...</p>
+               </div>
+            ) : (
+               <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-200/60 p-6 md:p-8">
+                  <div className="flex items-center justify-between mb-8 px-2">
+                     <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        Legutóbbi Beküldések
+                     </h3>
+                     <span className="text-xs font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">{submissions.length} db</span>
+                  </div>
+
+                  <div className="space-y-4">
+                     {!loading && submissions.slice().reverse().map((sub, i) => (
+                        <div key={i} className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-3xl hover:bg-emerald-50/50 border border-slate-100 hover:border-emerald-100 transition-all duration-300">
+                           <div className="flex items-start gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl flex-shrink-0 font-bold">
+                                 <FiClipboard />
+                              </div>
+                              <div>
+                                 <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-emerald-700 transition-colors">{sub.companyName || "Névtelen"}</h3>
+                                 <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-1.5">
+                                    <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
+                                       🥗 {sub.haccp_services || "Szolgáltatás"}
+                                    </span>
+                                    <span className="text-xs font-semibold text-slate-400">
+                                       📅 {new Date(sub.createdAt).toLocaleDateString("hu-HU")}
+                                    </span>
+                                 </div>
+                              </div>
+                           </div>
+
+                           <div className="flex items-center gap-2 self-end md:self-center">
+                              <button onClick={() => {
+                                 setEmailItem(sub);
+                                 setTargetEmail("sebimbalog@gmail.com");
+                                 setEmailMode("preset");
+                                 setSalutationName("Partnerünk");
+                                 setSenderName("Sebastian");
+                              }} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all" title="Email">
+                                 <FiMail size={18} />
+                              </button>
+                              <button onClick={() => setEditItem(sub)} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-amber-50 hover:text-amber-600 hover:border-amber-200 transition-all" title="Szerkesztés">
+                                 <FiEdit2 size={18} />
+                              </button>
+                              <button onClick={() => generatePDF(sub)} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-all" title="PDF">
+                                 <FiFileText size={18} />
+                              </button>
+                              <button onClick={() => deleteSubmission(sub._id)} className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all" title="Törlés">
+                                 <FiTrash2 size={18} />
+                              </button>
+                           </div>
+                        </div>
+                     ))}
+                     {!loading && submissions.length === 0 && <p className="text-center text-slate-400 py-10 italic">Nincs HACCP megrendelés.</p>}
+                  </div>
+               </div>
+            )}
+         </div>
 
          {/* --- EMAIL MODAL --- */}
          {emailItem && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-               <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6">
-                  <h2 className="text-xl font-bold text-slate-800 mb-4">HCCP Dokumentum Küldése</h2>
-                  <form onSubmit={handleSendEmail} className="space-y-4">
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+               <div className="bg-white w-full max-w-lg rounded-[2rem] shadow-2xl p-8 animate-in fade-in zoom-in duration-300">
+                  <div className="flex justify-between items-center mb-6">
                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">Címzett</label>
-                        <div className="flex gap-2 mb-2 p-1 bg-slate-100 rounded-lg">
-                           <button type="button" onClick={() => { setEmailMode("preset"); setTargetEmail("adam@aramszerelo.hu"); }} className={`flex-1 py-1 ${emailMode === "preset" ? "bg-white text-emerald-600 shadow" : "text-gray-500"} rounded`}>Lista</button>
-                           <button type="button" onClick={() => { setEmailMode("custom"); setTargetEmail(""); }} className={`flex-1 py-1 ${emailMode === "custom" ? "bg-white text-emerald-600 shadow" : "text-gray-500"} rounded`}>Egyéni</button>
+                        <h2 className="text-2xl font-black text-slate-800">HACCP Anyag Küldése</h2>
+                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">PDF csatolva lesz</p>
+                     </div>
+                     <button onClick={() => setEmailItem(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
+                        <FiX size={20} />
+                     </button>
+                  </div>
+
+                  <form onSubmit={handleSendEmail} className="space-y-5">
+                     <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Címzett</label>
+
+                        <div className="flex gap-2 mb-3 p-1.5 bg-slate-100 rounded-xl">
+                           <button type="button" onClick={() => { setEmailMode("preset"); setTargetEmail("sebimbalog@gmail.com"); }} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${emailMode === "preset" ? "bg-white shadow text-emerald-600" : "text-slate-500 hover:text-slate-700"}`}>Lista</button>
+                           <button type="button" onClick={() => { setEmailMode("custom"); setTargetEmail(""); }} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${emailMode === "custom" ? "bg-white shadow text-emerald-600" : "text-slate-500 hover:text-slate-700"}`}>Egyéni</button>
                         </div>
-                        {emailMode === 'preset' ? (
-                           <select value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} className="w-full border p-2 rounded">
-                              <option value="adam@aramszerelo.hu">Adam</option>
-                              <option value="info@vbf1.hu">Ricsi</option>
-                              <option value="sebimbalog@gmail.com">Sebi</option>
-                           </select>
+
+                        {emailMode === "preset" ? (
+                           <div className="relative">
+                              <select
+                                 value={targetEmail}
+                                 onChange={(e) => setTargetEmail(e.target.value)}
+                                 className="w-full appearance-none border border-slate-200 p-4 rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500"
+                              >
+                                 <option value="sebimbalog@gmail.com">Sebi (sebimbalog@gmail.com)</option>
+                                 <option value="adam@aramszerelo.hu">Adam (adam@aramszerelo.hu)</option>
+                                 <option value="info@vbf1.hu">Ricsi (info@vbf1.hu)</option>
+                              </select>
+                              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">▼</div>
+                           </div>
                         ) : (
-                           <input type="email" value={targetEmail} onChange={(e) => setTargetEmail(e.target.value)} className="w-full border p-2 rounded" placeholder="email@cim.hu" required />
+                           <input
+                              type="email"
+                              placeholder="pelda@email.hu"
+                              value={targetEmail}
+                              onChange={(e) => setTargetEmail(e.target.value)}
+                              className="w-full border border-slate-200 p-4 rounded-xl bg-white font-medium outline-none focus:ring-2 focus:ring-emerald-500"
+                              required
+                           />
                         )}
                      </div>
+
                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">Megszólítás</label>
-                        <input type="text" value={salutationName} onChange={(e) => setSalutationName(e.target.value)} className="w-full border p-2 rounded" placeholder="Pl: Kedves Tamás!" />
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Megszólítás (Kedves ...)</label>
+                        <input
+                           type="text"
+                           placeholder="Pl: Tamás, Partnerünk"
+                           value={salutationName}
+                           onChange={(e) => setSalutationName(e.target.value)}
+                           className="w-full border border-slate-200 p-4 rounded-xl bg-slate-50 font-medium outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
                      </div>
+
                      <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1">Aláíró</label>
-                        <select value={senderName} onChange={(e) => setSenderName(e.target.value)} className="w-full border p-2 rounded">
-                           <option value="Sebastian">Sebastian</option>
-                           <option value="Jani">Jani</option>
-                           <option value="Márk">Márk</option>
-                        </select>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Aláírás</label>
+                        <div className="relative">
+                           <select
+                              value={senderName}
+                              onChange={(e) => setSenderName(e.target.value)}
+                              className="w-full appearance-none border border-slate-200 p-4 rounded-xl bg-slate-50 font-medium text-slate-700 outline-none focus:ring-2 focus:ring-emerald-500"
+                           >
+                              <option value="Sebastian">Sebastian</option>
+                              <option value="Jani">Jani</option>
+                              <option value="Márk">Márk</option>
+                           </select>
+                           <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">▼</div>
+                        </div>
                      </div>
-                     <div className="bg-slate-50 border border-slate-200 p-3 rounded-md text-sm text-slate-600">
-                        <div className="font-bold text-slate-800 mb-1">Előnézet</div>
-                        <div>Címzett: <span className="font-medium text-slate-900">{targetEmail || "-"}</span></div>
-                        <div>Feladó: <span className="font-medium text-slate-900">{senderName || "-"}</span></div>
+
+                     <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-sm text-slate-600 mt-2">
+                        <p className="font-bold text-emerald-800 mb-2 text-xs uppercase">Email Előnézet</p>
+                        <p className="italic text-xs leading-relaxed font-mono bg-white p-3 rounded-xl border border-emerald-100">
+                           "Kedves <span className="font-bold text-slate-900">{salutationName || "Partnerünk"}</span>!<br /><br />
+                           Mellékelten küldöm a HACCP dokumentációt...<br />
+                           Szolgáltatás: <span className="text-emerald-600 font-bold">{emailItem.haccp_services}</span><br /><br />
+                           Üdvözlettel,<br />
+                           {senderName}<br />
+                           Trident Shield Group Kft."
+                        </p>
                      </div>
-                     <div className="flex justify-end gap-2 mt-4">
-                        <button type="button" onClick={() => setEmailItem(null)} className="px-4 py-2 bg-gray-200 rounded text-gray-700">Mégse</button>
-                        <button type="submit" disabled={sending} className="px-4 py-2 bg-emerald-600 text-white rounded font-bold">{sending ? "Küldés..." : "Küldés"}</button>
+
+                     <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-4">
+                        <button type="button" onClick={() => setEmailItem(null)} className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-colors">Mégse</button>
+                        <button type="submit" disabled={sending} className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 disabled:opacity-70 flex items-center gap-2 transition-all active:scale-95">
+                           {sending ? <FiRefreshCw className="animate-spin" /> : <FiMail />}
+                           {sending ? "Küldés..." : "Küldés"}
+                        </button>
                      </div>
                   </form>
                </div>
             </div>
          )}
 
-         {/* --- EDIT MODAL (TELJES) --- */}
+         {/* --- EDIT MODAL (HACCP TELJES) --- */}
          {editItem && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-               <div className="bg-white w-full max-w-5xl max-h-[95vh] overflow-hidden rounded-2xl shadow-2xl flex flex-col">
-                  <div className="bg-white border-b border-slate-100 p-5 flex justify-between items-center">
-                     <h2 className="text-xl font-bold text-slate-800">HCCP Adatok Szerkesztése (Minden mező)</h2>
-                     <button onClick={() => setEditItem(null)} className="text-slate-400 hover:text-slate-600 text-xl">✕</button>
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+               <div className="bg-white w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-[2rem] shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
+                  <div className="bg-white border-b border-slate-100 p-6 flex justify-between items-center z-10">
+                     <div>
+                        <h2 className="text-2xl font-black text-slate-800">HACCP Adatok Szerkesztése</h2>
+                        <p className="text-slate-500 text-sm font-medium">Módosítások mentése az adatbázisba</p>
+                     </div>
+                     <button onClick={() => setEditItem(null)} className="p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-500 transition-colors">
+                        <FiX size={24} />
+                     </button>
                   </div>
 
-                  <div className="p-6 overflow-y-auto bg-slate-50/50 space-y-8 flex-1">
+                  <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto bg-[#f0fdf4] custom-scrollbar">
 
                      {/* 1. SZOLGÁLTATÁS */}
-                     <EditSection title="1. Szolgáltatás és Típus">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <EditGroup label="Szolgáltatások (Vesszővel választva)" name="haccp_services" val={editItem.haccp_services} onChange={handleEditChange} />
-                           <EditGroup label="Korábbi dok? (Igen/Nem)" name="haccp_prev_doc" val={editItem.haccp_prev_doc} onChange={handleEditChange} />
-                           <EditGroup label="Egység típusa" name="haccp_unit_type" val={editItem.haccp_unit_type} onChange={handleEditChange} />
+                     <EditSection title="1. Szolgáltatás és Típus" color="emerald">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                           <EditGroup label="Szolgáltatások (Vesszővel)" name="haccp_services" val={editItem.haccp_services} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Korábbi dokumentum (Igen/Nem)" name="haccp_prev_doc" val={editItem.haccp_prev_doc} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Egység típusa" name="haccp_unit_type" val={editItem.haccp_unit_type} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
                      {/* 2. EGYSÉG ADATAI */}
-                     <EditSection title="2. Egység Adatai">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                           <EditGroup label="Cégnév / Egység neve" name="companyName" val={editItem.companyName} onChange={handleEditChange} />
-                           <EditGroup label="Cím" name="siteAddress" val={editItem.siteAddress} onChange={handleEditChange} />
-                           <EditGroup label="Telefon" name="managerPhone" val={editItem.managerPhone} onChange={handleEditChange} />
-                           <EditGroup label="Email" name="managerEmail" val={editItem.managerEmail} onChange={handleEditChange} />
-                           <EditGroup label="Üzletvezető neve" name="managerName" val={editItem.managerName} onChange={handleEditChange} />
-                           <EditGroup label="Beosztás" name="haccp_manager" val={editItem.haccp_manager} onChange={handleEditChange} />
-                           <EditGroup label="HACCP Felügyelő (ha van)" name="haccp_haccp_supervisor" val={editItem.haccp_haccp_supervisor} onChange={handleEditChange} />
+                     <EditSection title="2. Egység Adatai" color="emerald">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                           <EditGroup label="Cégnév / Egység neve" name="companyName" val={editItem.companyName} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Cím" name="siteAddress" val={editItem.siteAddress} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                           <EditGroup label="Üzletvezető neve" name="managerName" val={editItem.managerName} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Beosztás" name="haccp_manager" val={editItem.haccp_manager} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Telefon" name="managerPhone" val={editItem.managerPhone} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Email" name="managerEmail" val={editItem.managerEmail} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="mt-5">
+                           <EditGroup label="HACCP Felügyelő (ha van)" name="haccp_haccp_supervisor" val={editItem.haccp_haccp_supervisor} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
                      {/* 3. HELYISÉGEK */}
-                     <EditSection title="3. Helyiségek és Biztonság">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                           <EditGroup label="Helyiségek (Felsorolás)" name="haccp_rooms" val={editItem.haccp_rooms} onChange={handleEditChange} />
-                           <EditGroup label="Biztonsági eszközök" name="haccp_equipment" val={editItem.haccp_equipment} onChange={handleEditChange} />
-                           <EditGroup label="Táblák (Felsorolás)" name="haccp_signs" val={editItem.haccp_signs} onChange={handleEditChange} />
-                           <div className="grid grid-cols-2 gap-4">
-                              <EditGroup label="Tűzoltó db" name="haccp_extinguishers" val={editItem.haccp_extinguishers} onChange={handleEditChange} type="number" />
-                              <EditGroup label="Gázellátás" name="haccp_gas" val={editItem.haccp_gas} onChange={handleEditChange} />
-                           </div>
-                           <EditGroup label="Személyzeti rész?" name="haccp_staff_area" val={editItem.haccp_staff_area} onChange={handleEditChange} />
+                     <EditSection title="3. Helyiségek és Biztonság" color="emerald">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                           <EditGroup label="Helyiségek (Felsorolás)" name="haccp_rooms" val={editItem.haccp_rooms} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Biztonsági eszközök" name="haccp_equipment" val={editItem.haccp_equipment} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                           <EditGroup label="Táblák (Felsorolás)" name="haccp_signs" val={editItem.haccp_signs} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Tűzoltó db" name="haccp_extinguishers" val={editItem.haccp_extinguishers} onChange={handleEditChange} type="number" color="emerald" />
+                           <EditGroup label="Gázellátás" name="haccp_gas" val={editItem.haccp_gas} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="mt-5">
+                           <EditGroup label="Személyzeti rész?" name="haccp_staff_area" val={editItem.haccp_staff_area} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
                      {/* 4. ALAPANYAGOK */}
-                     <EditSection title="4. Alapanyagok és Beszerzés">
-                        <div className="grid grid-cols-1 gap-4">
-                           <EditGroup label="Termékkörök (1.1, 1.2...)" name="haccp_product_groups" val={editItem.haccp_product_groups} onChange={handleEditChange} />
-                           <EditGroup label="Beszállítók leírása" name="haccp_suppliers" val={editItem.haccp_suppliers} onChange={handleEditChange} />
-                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                              <EditGroup label="Beszállítói igazolás" name="haccp_supplier_verify" val={editItem.haccp_supplier_verify} onChange={handleEditChange} />
-                              <EditGroup label="Csomagolóanyag" name="haccp_packaging" val={editItem.haccp_packaging} onChange={handleEditChange} />
-                              <EditGroup label="Allergének külön?" name="haccp_allergen_separation" val={editItem.haccp_allergen_separation} onChange={handleEditChange} />
-                           </div>
-                           <EditGroup label="Allergén jelölés" name="haccp_allergen_labeling" val={editItem.haccp_allergen_labeling} onChange={handleEditChange} />
+                     <EditSection title="4. Alapanyagok és Beszerzés" color="emerald">
+                        <div className="grid grid-cols-1 gap-5 mb-5">
+                           <EditGroup label="Forgalmazott termékkörök" name="haccp_product_groups" val={editItem.haccp_product_groups} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Beszállítók leírása" name="haccp_suppliers" val={editItem.haccp_suppliers} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                           <EditGroup label="Beszállítói igazolás" name="haccp_supplier_verify" val={editItem.haccp_supplier_verify} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Csomagolóanyag" name="haccp_packaging" val={editItem.haccp_packaging} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Allergének elkülönítése" name="haccp_allergen_separation" val={editItem.haccp_allergen_separation} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="mb-5">
+                           <EditGroup label="Allergén jelölés" name="haccp_allergen_labeling" val={editItem.haccp_allergen_labeling} onChange={handleEditChange} color="emerald" />
+                        </div>
 
-                           {/* Mátrixok */}
-                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-                              <EditGroup label="Hús mátrix" name="haccp_meat_sourcing" val={editItem.haccp_meat_sourcing} onChange={handleEditChange} />
-                              <EditGroup label="Zöldség mátrix" name="haccp_veg_sourcing" val={editItem.haccp_veg_sourcing} onChange={handleEditChange} />
-                              <EditGroup label="Hal mátrix" name="haccp_fish_sourcing" val={editItem.haccp_fish_sourcing} onChange={handleEditChange} />
-                              <EditGroup label="Tojás mátrix" name="haccp_egg_sourcing" val={editItem.haccp_egg_sourcing} onChange={handleEditChange} />
-                           </div>
+                        {/* Mátrixok */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-emerald-50 p-6 rounded-2xl border border-emerald-100">
+                           <EditGroup label="Hús beszerzés" name="haccp_meat_sourcing" val={editItem.haccp_meat_sourcing} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Zöldség beszerzés" name="haccp_veg_sourcing" val={editItem.haccp_veg_sourcing} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Hal beszerzés" name="haccp_fish_sourcing" val={editItem.haccp_fish_sourcing} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Tojás beszerzés" name="haccp_egg_sourcing" val={editItem.haccp_egg_sourcing} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
                      {/* 5. MŰKÖDÉS */}
-                     <EditSection title="5. Működés és Technológia">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <EditGroup label="Értékesítés módja" name="haccp_sales_method" val={editItem.haccp_sales_method} onChange={handleEditChange} />
-                           <EditGroup label="Előkészítők" name="haccp_preparation_rooms" val={editItem.haccp_preparation_rooms} onChange={handleEditChange} />
-                           <EditGroup label="Termelő helyiségek" name="haccp_production_rooms" val={editItem.haccp_production_rooms} onChange={handleEditChange} />
-                           <EditGroup label="Munkafázisok" name="haccp_workflow" val={editItem.haccp_workflow} onChange={handleEditChange} />
-                           <EditGroup label="Pizza tészta" name="haccp_pasta_production" val={editItem.haccp_pasta_production} onChange={handleEditChange} />
-                           <EditGroup label="Egyéb tészta" name="haccp_other_pasta" val={editItem.haccp_other_pasta} onChange={handleEditChange} />
+                     <EditSection title="5. Működés és Technológia" color="emerald">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                           <EditGroup label="Értékesítés módja" name="haccp_sales_method" val={editItem.haccp_sales_method} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Munkafázisok" name="haccp_workflow" val={editItem.haccp_workflow} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                           <EditGroup label="Előkészítő helyiségek" name="haccp_preparation_rooms" val={editItem.haccp_preparation_rooms} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Termelő helyiségek" name="haccp_production_rooms" val={editItem.haccp_production_rooms} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                           <EditGroup label="Pizza tészta készítés" name="haccp_pasta_production" val={editItem.haccp_pasta_production} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Egyéb tészta készítés" name="haccp_other_pasta" val={editItem.haccp_other_pasta} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
                      {/* 6. HULLADÉK */}
-                     <EditSection title="6. Kiszállítás és Hulladék">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <EditGroup label="Kiszállítás partnerek" name="haccp_delivery" val={editItem.haccp_delivery} onChange={handleEditChange} />
-                           <EditGroup label="Kiszállítás módja" name="haccp_delivery_method" val={editItem.haccp_delivery_method} onChange={handleEditChange} />
-                           <EditGroup label="Olaj elszállítás" name="haccp_oil_transport" val={editItem.haccp_oil_transport} onChange={handleEditChange} />
-                           <EditGroup label="Hulladék elszállítás" name="haccp_waste_transport" val={editItem.haccp_waste_transport} onChange={handleEditChange} />
-                           <EditGroup label="Rágcsálóirtás (Van?)" name="haccp_pest_control" val={editItem.haccp_pest_control} onChange={handleEditChange} />
-                           <EditGroup label="Rágcsálóirtás Cég" name="haccp_pest_control_company" val={editItem.haccp_pest_control_company} onChange={handleEditChange} />
+                     <EditSection title="6. Kiszállítás és Hulladék" color="emerald">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                           <EditGroup label="Kiszállítás partnerek" name="haccp_delivery" val={editItem.haccp_delivery} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Kiszállítás módja" name="haccp_delivery_method" val={editItem.haccp_delivery_method} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                           <EditGroup label="Olaj elszállítás" name="haccp_oil_transport" val={editItem.haccp_oil_transport} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Hulladék elszállítás" name="haccp_waste_transport" val={editItem.haccp_waste_transport} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Rágcsálóirtás (Van?)" name="haccp_pest_control" val={editItem.haccp_pest_control} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="mt-5">
+                           <EditGroup label="Rágcsálóirtás Cég" name="haccp_pest_control_company" val={editItem.haccp_pest_control_company} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
-                     {/* EGYÉB */}
-                     <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                        <label className="block text-sm font-bold text-slate-700 mb-1">Megjegyzés</label>
-                        <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border border-gray-300 rounded-lg p-3 h-24 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-700"></textarea>
+                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-3">Megjegyzés</label>
+                        <textarea name="notes" value={editItem.notes || ""} onChange={handleEditChange} className="w-full border border-slate-200 bg-slate-50 rounded-xl p-4 h-32 focus:ring-2 focus:ring-emerald-500 outline-none text-slate-700 font-medium"></textarea>
                      </div>
 
                   </div>
 
-                  <div className="p-5 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
-                     <button onClick={() => setEditItem(null)} className="bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold">Mégse</button>
-                     <button onClick={saveEdit} className="bg-emerald-600 text-white px-8 py-2 rounded-lg font-bold shadow-lg hover:bg-emerald-700">Mentés</button>
+                  <div className="p-6 border-t border-slate-100 flex justify-end gap-3 sticky bottom-0 z-10 bg-white">
+                     <button onClick={() => setEditItem(null)} className="px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-slate-50 transition-colors">Mégse</button>
+                     <button onClick={saveEdit} className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center gap-2">
+                        <FiCheck size={20} /> Mentés
+                     </button>
                   </div>
                </div>
             </div>
          )}
-
       </div>
    );
 }
 
 // UI Segéd
-function EditSection({ title, children }: { title: string, children: React.ReactNode }) {
+function EditSection({ title, children, color = "indigo" }: { title: string, children: React.ReactNode, color?: string }) {
+   const textColor = color === "emerald" ? "text-emerald-600" : (color === "orange" ? "text-orange-600" : "text-indigo-600");
    return (
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm relative">
-         <h3 className="text-sm font-bold text-emerald-600 uppercase tracking-wide mb-4 border-b pb-2">{title}</h3>
-         {children}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative">
+         <div className={`absolute top-0 left-6 -translate-y-1/2 bg-white px-2 ${textColor} font-bold text-xs uppercase tracking-widest border border-slate-100 rounded-full shadow-sm`}>
+            {title}
+         </div>
+         <div className="pt-2">
+            {children}
+         </div>
       </div>
    );
 }
 
-function EditGroup({ label, name, val, onChange, type = "text" }: any) {
+function EditGroup({ label, name, val, onChange, type = "text", color = "indigo" }: any) {
+   const ringColor = color === "emerald" ? "focus:ring-emerald-500" : (color === "orange" ? "focus:ring-orange-500" : "focus:ring-indigo-500");
    return (
       <div>
-         <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase truncate" title={label}>{label}</label>
-         <input type={type} name={name} value={val || ""} onChange={onChange} className="w-full border border-gray-200 bg-slate-50 rounded-lg px-2 py-2 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none text-slate-800 text-sm font-medium transition-all" />
+         <label className="block text-[10px] font-bold text-slate-400 mb-1.5 uppercase truncate" title={label}>{label}</label>
+         <input type={type} name={name} value={val || ""} onChange={onChange} className={`w-full border border-slate-200 bg-slate-50 rounded-xl px-3 py-2.5 focus:bg-white focus:ring-2 ${ringColor} outline-none text-slate-800 text-sm font-semibold transition-all placeholder:text-slate-300`} />
       </div>
    );
 }
