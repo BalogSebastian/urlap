@@ -1,4 +1,4 @@
-// /app/adminvbs/page.tsx
+// /app/adminvbf/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -47,16 +47,16 @@ export default function AdminVBFPage() {
   const [salutationName, setSalutationName] = useState("");
   const [sending, setSending] = useState(false);
 
-  // ADATOK BETÖLTÉSE (CSAK VBS/VBF)
+  // ADATOK BETÖLTÉSE (CSAK VBF)
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/submissions");
       const data = await res.json();
       if (res.ok) {
-        // Szűrés: Csak a 'vbs' vagy 'vbf' típusúak
-        const vbsData = data.filter((item: any) => item.formType === 'vbs' || item.formType === 'vbf');
-        setSubmissions(vbsData);
+        // Szűrés: Csak a 'vbf' típusúak
+        const vbfData = data.filter((item: any) => item.formType === 'vbf');
+        setSubmissions(vbfData);
       }
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -114,7 +114,7 @@ export default function AdminVBFPage() {
       formData.append("companyName", emailItem.companyName);
 
       // VBF specifikus adatok átadása az új API-nak
-      formData.append("vbfServices", emailItem.vbs_services || "Nincs megadva");
+      formData.append("vbfServices", emailItem.vbf_services || "Nincs megadva");
       formData.append("senderName", senderName);
 
       // NEW: Salutation
@@ -197,7 +197,7 @@ export default function AdminVBFPage() {
 
     const tableBody = [
       [{ content: '1. Megrendelt Szolgáltatások', colSpan: 2, styles: sectionStyle }],
-      ['Típusok', data.vbs_services || 'Nincs kiválasztva'],
+      ['Típusok', data.vbf_services || 'Nincs kiválasztva'],
 
       [{ content: '2. Ügyfél Adatai', colSpan: 2, styles: sectionStyle }],
       ['Cég neve', data.companyName || '-'],
@@ -212,7 +212,7 @@ export default function AdminVBFPage() {
       ['Telephely mérete', data.areaSize ? `${data.areaSize} m²` : '-'],
 
       [{ content: '4. Előzmények', colSpan: 2, styles: sectionStyle }],
-      ['Van korábbi dokumentum?', data.vbs_prev_doc || '-'],
+      ['Van korábbi dokumentum?', data.vbf_prev_doc || '-'],
 
       [{ content: 'Egyéb megjegyzés', colSpan: 2, styles: sectionStyle }],
       [{ content: data.notes || "Nincs megjegyzés.", colSpan: 2, styles: { fontStyle: 'italic', textColor: 80 } }],
@@ -284,7 +284,7 @@ export default function AdminVBFPage() {
               Trident Shield Group
             </div>
             <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">
-              VBF/VBS <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">Megrendelések</span>
+              VBF <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-600 to-amber-600">Megrendelések</span>
             </h1>
           </div>
           <div className="flex items-center gap-3">
@@ -347,7 +347,7 @@ export default function AdminVBFPage() {
                       <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-orange-700 transition-colors">{sub.companyName || "Névtelen"}</h3>
                       <div className="flex flex-wrap items-center gap-y-1 gap-x-3 mt-1.5">
                         <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                          🔧 {sub.vbs_services}
+                          🔧 {sub.vbf_services}
                         </span>
                         <span className="text-xs font-semibold text-slate-400">
                           📅 {new Date(sub.createdAt).toLocaleDateString("hu-HU")}
@@ -465,7 +465,7 @@ export default function AdminVBFPage() {
                 <p className="italic text-xs leading-relaxed font-mono bg-white p-3 rounded-xl border border-orange-100">
                   "Kedves <span className="font-bold text-slate-900">{salutationName || "Partnerünk"}</span>!<br /><br />
                   Küldöm az adatokat...<br />
-                  Megrendelés: <span className="text-orange-600 font-bold">{emailItem.vbs_services}</span><br /><br />
+                  Megrendelés: <span className="text-orange-600 font-bold">{emailItem.vbf_services}</span><br /><br />
                   Üdvözlettel,<br />
                   {senderName}<br />
                   Trident Shield Group Kft."
@@ -501,8 +501,8 @@ export default function AdminVBFPage() {
             <div className="p-6 md:p-8 space-y-8 flex-1 overflow-y-auto bg-[#fff7ed] custom-scrollbar">
               <EditSection title="1. Szolgáltatás & Előzmény" color="orange">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <EditGroup label="Megrendelt szolgáltatások" name="vbs_services" val={editItem.vbs_services} onChange={handleEditChange} color="orange" />
-                  <EditGroup label="Korábbi dokumentum (Igen/Nem)" name="vbs_prev_doc" val={editItem.vbs_prev_doc} onChange={handleEditChange} color="orange" />
+                  <EditGroup label="Megrendelt szolgáltatások" name="vbf_services" val={editItem.vbf_services} onChange={handleEditChange} color="orange" />
+                  <EditGroup label="Korábbi dokumentum (Igen/Nem)" name="vbf_prev_doc" val={editItem.vbf_prev_doc} onChange={handleEditChange} color="orange" />
                 </div>
               </EditSection>
 

@@ -61,11 +61,11 @@ export async function POST(req: Request) {
          from: `"${senderName}" <${process.env.EMAIL_USER}>`,
          to: email,
          // cc: "sebimbalog@gmail.com", // Ha kell fix CC, de a VBF-nél nincs hardcode-olva
-         subject: `HCCP Megrendelés - ${companyName}`,
+         subject: `HACCP Megrendelés - ${companyName}`,
          html: htmlContent,
          attachments: [
             {
-               filename: file.name, // "HCCP_Megrendelo.pdf"
+               filename: file.name, // "HACCP_Megrendelo.pdf"
                content: buffer,
             },
          ],

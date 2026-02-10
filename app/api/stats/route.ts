@@ -15,25 +15,25 @@ export async function GET() {
     const stats = {
       total: allSubmissions.length,
       fireCount: allSubmissions.filter(s => s.formType === 'fire').length,
-      vbsCount: allSubmissions.filter(s => s.formType === 'vbs').length,
-      
+      vbfCount: allSubmissions.filter(s => s.formType === 'vbf').length,
+
       // E havi statisztikák
       thisMonth: {
         total: allSubmissions.filter(s => new Date(s.createdAt) >= firstDayOfMonth).length,
         fire: allSubmissions.filter(s => s.formType === 'fire' && new Date(s.createdAt) >= firstDayOfMonth).length,
-        vbs: allSubmissions.filter(s => s.formType === 'vbs' && new Date(s.createdAt) >= firstDayOfMonth).length,
+        vbf: allSubmissions.filter(s => s.formType === 'vbf' && new Date(s.createdAt) >= firstDayOfMonth).length,
       },
 
       // Legutóbbi 5 tevékenység
       recentActivity: allSubmissions
-  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-  .slice(0, 5)
-  .map(s => ({
-    id: s._id,
-    company: s.companyName,
-    type: s.formType,
-    date: s.createdAt
-  }))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5)
+        .map(s => ({
+          id: s._id,
+          company: s.companyName,
+          type: s.formType,
+          date: s.createdAt
+        }))
     };
 
     return NextResponse.json(stats);

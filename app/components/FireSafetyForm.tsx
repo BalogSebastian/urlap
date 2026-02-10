@@ -2,22 +2,32 @@
 
 import React, { useState } from "react";
 
-type Theme = 'cyan' | 'orange' | 'gray';
+type Theme = 'cyan' | 'orange' | 'gray' | 'purple';
 
 export default function FireSafetyForm() {
-    const [activeTab, setActiveTab] = useState<'fire' | 'vbf' | 'hccp'>('fire');
+    const [activeTab, setActiveTab] = useState<'fire' | 'vbf' | 'haccp' | 'generate'>('fire');
+    const [genTokenDuration, setGenTokenDuration] = useState<string>('1h');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
 
     // Determine current theme based on active tab
     // Fire -> Cyan (Blue)
+    // Fire -> Cyan (Blue)
     // VBF -> Orange
-    // HCCP -> Gray
-    const currentTheme: Theme = activeTab === 'fire' ? 'cyan' : (activeTab === 'vbf' ? 'orange' : 'gray');
+    // HACCP -> Gray
+    // Fire -> Cyan (Blue)
+    // VBF -> Orange
+    // HACCP -> Gray (Emerald)
+    // Generate -> Purple
+    const currentTheme: Theme =
+        activeTab === 'fire' ? 'cyan' :
+            (activeTab === 'vbf' ? 'orange' :
+                (activeTab === 'haccp' ? 'gray' : 'purple'));
 
     // --- MENTÉS LOGIKA ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (activeTab === 'generate') return; // A generálás fülön a gomb inaktív
         setLoading(true);
 
         const form = e.target as HTMLFormElement;
@@ -87,11 +97,12 @@ export default function FireSafetyForm() {
             <div className="flex justify-center mb-8">
                 <div className="bg-white p-1.5 rounded-2xl shadow-lg border border-slate-200 inline-flex relative">
                     {/* Háttér animáció a csúszkához */}
-                    {/* Fire -> Cyan, VBF -> Orange, HCCP -> Gray */}
+                    {/* Fire -> Cyan, VBF -> Orange, HACCP -> Gray, Generate -> Purple */}
                     <div className={`absolute top-1.5 bottom-1.5 w-[140px] rounded-xl transition-all duration-300 ease-in-out shadow-sm
                         ${activeTab === 'fire' ? 'left-1.5 bg-cyan-500' : ''}
                         ${activeTab === 'vbf' ? 'left-[148px] bg-orange-500' : ''}
-                        ${activeTab === 'hccp' ? 'left-[290px] bg-emerald-500' : ''}
+                        ${activeTab === 'haccp' ? 'left-[290px] bg-emerald-500' : ''}
+                        ${activeTab === 'generate' ? 'left-[432px] bg-indigo-500' : ''}
                     `}></div>
 
                     <button
@@ -110,10 +121,17 @@ export default function FireSafetyForm() {
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab('hccp')}
-                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'hccp' ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => setActiveTab('haccp')}
+                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'haccp' ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
                     >
-                        🛡️ HCCP
+                        🛡️ HACCP
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('generate')}
+                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'generate' ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
+                    >
+                        🚀 Generálás
                     </button>
                 </div>
             </div>
@@ -133,10 +151,16 @@ export default function FireSafetyForm() {
                         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-amber-400 rounded-full blur-3xl opacity-15"></div>
                     </>
                 )}
-                {activeTab === 'hccp' && (
+                {activeTab === 'haccp' && (
                     <>
                         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-emerald-400 rounded-full blur-3xl opacity-15"></div>
                         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-emerald-200 rounded-full blur-3xl opacity-15"></div>
+                    </>
+                )}
+                {activeTab === 'generate' && (
+                    <>
+                        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-indigo-500 rounded-full blur-3xl opacity-15"></div>
+                        <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-purple-400 rounded-full blur-3xl opacity-15"></div>
                     </>
                 )}
 
@@ -149,36 +173,40 @@ export default function FireSafetyForm() {
                         <span className={`
                             ${activeTab === 'fire' ? 'text-cyan-500' : ''}
                             ${activeTab === 'vbf' ? 'text-orange-600' : ''}
-                            ${activeTab === 'hccp' ? 'text-emerald-600' : ''}
+                            ${activeTab === 'haccp' ? 'text-emerald-600' : ''}
+                            ${activeTab === 'generate' ? 'text-indigo-600' : ''}
                         `}>
                             {activeTab === 'fire' && "Tűz- és Munkavédelmi Adatlap"}
                             {activeTab === 'vbf' && "VBF Megrendelő Adatlap"}
-                            {activeTab === 'hccp' && "HCCP Dokumentáció"}
+                            {activeTab === 'haccp' && "HACCP Dokumentáció"}
+                            {activeTab === 'generate' && "Generálás és Küldés"}
                         </span>
                     </h1>
                     <p className="text-lg text-slate-500 max-w-3xl mx-auto leading-relaxed">
                         {activeTab === 'fire' && "Kérjük, töltse ki a tűz- és munkavédelmi dokumentációhoz szükséges adatokat."}
                         {activeTab === 'vbf' && "Kérjük, adja meg a villamos biztonsági felülvizsgálathoz szükséges adatokat."}
-                        {activeTab === 'hccp' && "Élelmiszerbiztonsági rendszer kidolgozása."}
+                        {activeTab === 'haccp' && "Élelmiszerbiztonsági rendszer kidolgozása."}
+                        {activeTab === 'generate' && "Ideiglenes hozzáférési token generálása és kiküldése."}
                     </p>
                 </div>
                 {/* Gradient Stripe */}
                 <div className={`h-2 w-full bg-gradient-to-r 
                      ${activeTab === 'fire' ? 'from-cyan-500 via-cyan-400 to-cyan-300' : ''}
                      ${activeTab === 'vbf' ? 'from-orange-500 via-orange-400 to-amber-300' : ''}
-                     ${activeTab === 'hccp' ? 'from-emerald-400 via-emerald-300 to-emerald-200' : ''}
+                     ${activeTab === 'haccp' ? 'from-emerald-400 via-emerald-300 to-emerald-200' : ''}
+                     ${activeTab === 'generate' ? 'from-indigo-500 via-purple-500 to-pink-400' : ''}
                 `}></div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-10">
 
                 {/* =========================================================================
-            HCCP (FEJLESZTÉS ALATT)
+            HACCP (FEJLESZTÉS ALATT)
            ========================================================================= */}
                 {/* =========================================================================
-            HCCP ADATLAP (Green Theme / Emerald)
+            HACCP ADATLAP (Green Theme / Emerald)
            ========================================================================= */}
-                {activeTab === 'hccp' && (
+                {activeTab === 'haccp' && (
                     <>
                         {/* 1. Szolgáltatás */}
                         <Section theme={currentTheme} number="01" title="Szolgáltatás és Típus" description="Válassza ki a megfelelő kategóriákat.">
@@ -542,9 +570,9 @@ export default function FireSafetyForm() {
                     <>
                         <Section theme={currentTheme} number="01" title="Szolgáltatás kiválasztása" description="Milyen felülvizsgálatot szeretne rendelni?">
                             <div className="space-y-4 bg-orange-50/50 p-6 rounded-2xl border border-orange-100">
-                                <CheckboxCard theme={currentTheme} name="vbs_services" label="Villamos Biztonsági felülvizsgálat" />
-                                <CheckboxCard theme={currentTheme} name="vbs_services" label="Villámvédelmi felülvizsgálat" />
-                                <CheckboxCard theme={currentTheme} name="vbs_services" label="Szabványossági felülvizsgálat" />
+                                <CheckboxCard theme={currentTheme} name="vbf_services" label="Villamos Biztonsági felülvizsgálat" />
+                                <CheckboxCard theme={currentTheme} name="vbf_services" label="Villámvédelmi felülvizsgálat" />
+                                <CheckboxCard theme={currentTheme} name="vbf_services" label="Szabványossági felülvizsgálat" />
                             </div>
                         </Section>
 
@@ -567,8 +595,8 @@ export default function FireSafetyForm() {
                             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
                                 <Label theme={currentTheme}>Rendelkezik korábbi felülvizsgálati dokumentummal?</Label>
                                 <div className="flex gap-6 mt-4">
-                                    <RadioSimple theme={currentTheme} name="vbs_prev_doc" value="Igen" label="Igen, rendelkezem" />
-                                    <RadioSimple theme={currentTheme} name="vbs_prev_doc" value="Nem" label="Nem rendelkezem" />
+                                    <RadioSimple theme={currentTheme} name="vbf_prev_doc" value="Igen" label="Igen, rendelkezem" />
+                                    <RadioSimple theme={currentTheme} name="vbf_prev_doc" value="Nem" label="Nem rendelkezem" />
                                 </div>
                             </div>
                         </Section>
@@ -944,24 +972,77 @@ export default function FireSafetyForm() {
                     </>
                 )}
 
-                {/* 11. Egyéb (Közös szekció) */}
-                <Section theme={currentTheme} number={activeTab === 'fire' ? "11" : "04"} title="Megjegyzés" description="Bármi egyéb fontos információ.">
-                    <textarea
-                        name="notes"
-                        className={`w-full p-4 border border-gray-300 rounded-2xl shadow-sm focus:ring-4 min-h-[120px] outline-none transition-all placeholder-gray-400 ${currentTheme === 'cyan' ? 'focus:ring-cyan-100 focus:border-cyan-400' : (currentTheme === 'orange' ? 'focus:ring-orange-100 focus:border-orange-500' : 'focus:ring-slate-100 focus:border-slate-400')}`}
-                        placeholder="Írjon ide bármit, amit fontosnak tart..."
-                    ></textarea>
-                </Section>
+                {/* 11. Egyéb (Közös szekció) - CSAK HA NEM GENERÁLÁS */}
+                {activeTab !== 'generate' && (
+                    <Section theme={currentTheme} number={activeTab === 'fire' ? "11" : "04"} title="Megjegyzés" description="Bármi egyéb fontos információ.">
+                        <textarea
+                            name="notes"
+                            className={`w-full p-4 border border-gray-300 rounded-2xl shadow-sm focus:ring-4 min-h-[120px] outline-none transition-all placeholder-gray-400 ${currentTheme === 'cyan' ? 'focus:ring-cyan-100 focus:border-cyan-400' : (currentTheme === 'orange' ? 'focus:ring-orange-100 focus:border-orange-500' : (currentTheme === 'purple' ? 'focus:ring-indigo-100 focus:border-indigo-500' : 'focus:ring-slate-100 focus:border-slate-400'))}`}
+                            placeholder="Írjon ide bármit, amit fontosnak tart..."
+                        ></textarea>
+                    </Section>
+                )}
+
+                {/* =========================================================================
+             GENERÁLÁS TAB (Purple Theme)
+            ========================================================================= */}
+                {activeTab === 'generate' && (
+                    <Section theme={currentTheme} number="01" title="Generálás beállításai" description="Adja meg a címzettet és az érvényességi időt.">
+                        <div className="grid grid-cols-1 gap-6">
+                            <InputGroup theme={currentTheme} label="E-mail cím" name="gen_email" type="email" placeholder="cimzett@pelda.hu" fullWidth />
+
+                            <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                                <Label theme={currentTheme}>Token érvényességi ideje</Label>
+                                <div className="grid grid-cols-1 gap-4 mt-3">
+                                    <div className="flex flex-wrap gap-4">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="gen_token_duration" value="1h" checked={genTokenDuration === '1h'} onChange={() => setGenTokenDuration('1h')} className="text-indigo-600 focus:ring-indigo-500" />
+                                            <span className="text-sm font-semibold text-slate-700">1 óra</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="gen_token_duration" value="2h" checked={genTokenDuration === '2h'} onChange={() => setGenTokenDuration('2h')} className="text-indigo-600 focus:ring-indigo-500" />
+                                            <span className="text-sm font-semibold text-slate-700">2 óra</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="gen_token_duration" value="24h" checked={genTokenDuration === '24h'} onChange={() => setGenTokenDuration('24h')} className="text-indigo-600 focus:ring-indigo-500" />
+                                            <span className="text-sm font-semibold text-slate-700">1 nap</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="gen_token_duration" value="48h" checked={genTokenDuration === '48h'} onChange={() => setGenTokenDuration('48h')} className="text-indigo-600 focus:ring-indigo-500" />
+                                            <span className="text-sm font-semibold text-slate-700">2 nap</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input type="radio" name="gen_token_duration" value="custom" checked={genTokenDuration === 'custom'} onChange={() => setGenTokenDuration('custom')} className="text-indigo-600 focus:ring-indigo-500" />
+                                            <span className="text-sm font-semibold text-slate-700">Egyéni</span>
+                                        </label>
+                                    </div>
+
+                                    {/* Egyéni input mezők */}
+                                    {genTokenDuration === 'custom' && (
+                                        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                                            <input type="number" name="gen_custom_amount" placeholder="Idő" className="w-24 border rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-400" min="1" />
+                                            <select name="gen_custom_unit" className="border rounded-xl p-3 outline-none focus:ring-2 focus:ring-indigo-400 bg-white">
+                                                <option value="hours">Óra</option>
+                                                <option value="days">Nap</option>
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </Section>
+                )}
 
                 {/* Submit Gomb */}
                 <div className="pt-8 pb-16">
                     <button type="submit" disabled={loading} className={`group relative w-full flex justify-center py-5 px-6 border border-transparent text-lg font-bold rounded-2xl text-white shadow-2xl transform transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed 
                         ${activeTab === 'fire' ? 'bg-gradient-to-r from-cyan-600 to-cyan-400 hover:from-cyan-500 hover:to-cyan-300 shadow-cyan-200' : ''}
                         ${activeTab === 'vbf' ? 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 shadow-orange-200' : ''}
-                        ${activeTab === 'hccp' ? 'bg-gradient-to-r from-emerald-600 to-emerald-400 hover:from-emerald-500 hover:to-emerald-300 shadow-emerald-200' : ''}
+                        ${activeTab === 'haccp' ? 'bg-gradient-to-r from-emerald-600 to-emerald-400 hover:from-emerald-500 hover:to-emerald-300 shadow-emerald-200' : ''}
+                        ${activeTab === 'generate' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-200 cursor-not-allowed opacity-80' : ''}
                     `}>
                         <span className="relative flex items-center gap-3">
-                            {loading ? "MENTÉS FOLYAMATBAN..." : (activeTab === 'fire' ? "ADATLAP BEKÜLDÉSE" : "MEGRENDELÉS KÜLDÉSE")}
+                            {loading ? "MENTÉS FOLYAMATBAN..." : (activeTab === 'fire' ? "ADATLAP BEKÜLDÉSE" : (activeTab === 'generate' ? "GENERÁLÁS ÉS KÜLDÉS" : "MEGRENDELÉS KÜLDÉSE"))}
                             {!loading && <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>}
                         </span>
                     </button>
@@ -984,6 +1065,7 @@ function Section({ number, title, description, children, theme = 'cyan' }: { num
     if (theme === 'cyan') accentClass = 'bg-cyan-50 text-cyan-600 border-cyan-100';
     if (theme === 'orange') accentClass = 'bg-orange-50 text-orange-600 border-orange-100';
     if (theme === 'gray') accentClass = 'bg-emerald-50 text-emerald-600 border-emerald-100';
+    if (theme === 'purple') accentClass = 'bg-indigo-50 text-indigo-600 border-indigo-100';
 
     return (
         <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-[0_4px_25px_-5px_rgba(0,0,0,0.05)] border border-slate-100 transition-all hover:shadow-[0_10px_35px_-5px_rgba(0,0,0,0.08)]">
@@ -1010,6 +1092,7 @@ function InputGroup({ label, name, type = "text", placeholder, fullWidth, requir
     if (theme === 'cyan') focusClass = 'focus:border-cyan-400 focus:ring-cyan-500/10';
     if (theme === 'orange') focusClass = 'focus:border-orange-500 focus:ring-orange-500/10';
     if (theme === 'gray') focusClass = 'focus:border-emerald-500 focus:ring-emerald-500/10';
+    if (theme === 'purple') focusClass = 'focus:border-indigo-500 focus:ring-indigo-500/10';
 
     return (
         <div className={fullWidth ? "w-full" : ""}>
@@ -1037,6 +1120,9 @@ function SelectableCard({ name, value, label, children, theme = 'cyan' }: any) {
     } else if (theme === 'gray') {
         themeClass = 'hover:border-emerald-400 hover:ring-emerald-100 has-[:checked]:border-emerald-500 has-[:checked]:ring-emerald-500 has-[:checked]:bg-emerald-50/10';
         iconColor = 'text-emerald-600';
+    } else if (theme === 'purple') {
+        themeClass = 'hover:border-indigo-400 hover:ring-indigo-100 has-[:checked]:border-indigo-500 has-[:checked]:ring-indigo-500 has-[:checked]:bg-indigo-50/10';
+        iconColor = 'text-indigo-600';
     }
 
     return (
@@ -1066,6 +1152,9 @@ function CheckboxCard({ label, name, theme = 'cyan' }: { label: string, name: st
     } else if (theme === 'gray') {
         cardClass = 'hover:bg-emerald-50 has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50/30';
         checkClass = 'text-emerald-600 focus:ring-emerald-500';
+    } else if (theme === 'purple') {
+        cardClass = 'hover:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50/30';
+        checkClass = 'text-indigo-600 focus:ring-indigo-500';
     }
 
     return (
@@ -1114,6 +1203,9 @@ function RadioSimple({ name, value, label, theme = 'cyan' }: any) {
     } else if (theme === 'gray') {
         radioClass = 'checked:border-emerald-600 checked:bg-emerald-600';
         textHoverClass = 'group-hover:text-emerald-600';
+    } else if (theme === 'purple') {
+        radioClass = 'checked:border-indigo-600 checked:bg-indigo-600';
+        textHoverClass = 'group-hover:text-indigo-600';
     }
 
     return (

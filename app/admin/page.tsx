@@ -22,7 +22,7 @@ export default function MasterAdminPortal() {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-4">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-indigo-50 via-white to-transparent -z-10"></div>
-        
+
         <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-slate-200/60 p-10 relative z-10">
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-2xl mb-4">
@@ -32,26 +32,26 @@ export default function MasterAdminPortal() {
             <h1 className="text-3xl font-black text-center text-slate-900 mb-2">Trident Admin</h1>
             <p className="text-center text-slate-500 mb-8 font-medium">Lépj be a folytatáshoz</p>
           </div>
-          
+
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-400 uppercase ml-2">Felhasználónév</label>
-              <input 
-                type="text" 
-                placeholder="admintrident" 
-                value={username} 
-                onChange={e => setUsername(e.target.value)} 
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700" 
+              <input
+                type="text"
+                placeholder="admintrident"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700"
               />
             </div>
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-400 uppercase ml-2">Jelszó</label>
-              <input 
-                type="password" 
-                placeholder="•••••" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700" 
+              <input
+                type="password"
+                placeholder="•••••"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700"
               />
             </div>
             <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold shadow-xl shadow-indigo-500/20 active:scale-95 transition-all mt-4">Bejelentkezés</button>
@@ -81,7 +81,7 @@ export default function MasterAdminPortal() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <PortalCard 
+          <PortalCard
             href="/adminadmin"
             title="Tűzvédelem"
             desc="Tűz- és munkavédelmi adatlapok kezelése, szerkesztése és PDF generálás."
@@ -90,7 +90,7 @@ export default function MasterAdminPortal() {
             bg="bg-rose-50"
             hover="hover:border-rose-200"
           />
-          <PortalCard 
+          <PortalCard
             href="/adminvbf"
             title="VBF"
             desc="Villamos biztonsági felülvizsgálati megrendelések és egyedi email küldés."
@@ -99,8 +99,8 @@ export default function MasterAdminPortal() {
             bg="bg-amber-50"
             hover="hover:border-amber-200"
           />
-          <PortalCard 
-            href="/adminhccp"
+          <PortalCard
+            href="/adminhaccp"
             title="HACCP"
             desc="HACCP élelmiszerbiztonsági rendszer dokumentációk és ellenőrzések."
             icon={<FiActivity />}
@@ -108,7 +108,7 @@ export default function MasterAdminPortal() {
             bg="bg-green-50"
             hover="hover:border-green-200"
           />
-          <PortalCard 
+          <PortalCard
             href="/staticsadmin"
             title="Statisztika"
             desc="Üzleti intelligencia, havi kimutatások és teljesítmény elemzés."
@@ -120,8 +120,8 @@ export default function MasterAdminPortal() {
         </div>
 
         <footer className="mt-20 text-center border-t border-slate-200 pt-8">
-          <button 
-            onClick={() => setIsAuthenticated(false)} 
+          <button
+            onClick={() => setIsAuthenticated(false)}
             className="px-6 py-3 bg-white hover:bg-rose-50 text-rose-500 rounded-xl shadow-sm border border-slate-200 font-bold text-sm flex items-center gap-2 transition-all active:scale-95 mx-auto"
           >
             <FiLogOut /> Kijelentkezés

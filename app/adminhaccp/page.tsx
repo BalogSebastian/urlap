@@ -1,4 +1,4 @@
-// /app/adminhccp/page.tsx
+// /app/adminhaccp/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -27,7 +27,7 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
    return window.btoa(binary);
 }
 
-export default function AdminHCCPPage() {
+export default function AdminHACCPPage() {
    const [isAuthenticated, setIsAuthenticated] = useState(false);
    const [username, setUsername] = useState("");
    const [password, setPassword] = useState("");
@@ -39,23 +39,23 @@ export default function AdminHCCPPage() {
    const [editItem, setEditItem] = useState<any>(null);
    const [emailItem, setEmailItem] = useState<any>(null);
 
-   // EMAIL BEÁLLÍTÁSOK (HCCP)
+   // EMAIL BEÁLLÍTÁSOK (HACCP)
    const [targetEmail, setTargetEmail] = useState("sebimbalog@gmail.com");
    const [senderName, setSenderName] = useState("Sebastian");
    const [emailMode, setEmailMode] = useState<"preset" | "custom">("preset");
    const [salutationName, setSalutationName] = useState("");
    const [sending, setSending] = useState(false);
 
-   // ADATOK BETÖLTÉSE (CSAK HCCP)
+   // ADATOK BETÖLTÉSE (CSAK HACCP)
    const fetchSubmissions = async () => {
       setLoading(true);
       try {
          const res = await fetch("/api/submissions");
          const data = await res.json();
          if (res.ok) {
-            // Szűrés: Csak a 'hccp' vagy 'haccp' típusúak
-            const hccpData = data.filter((item: any) => item.formType === 'hccp' || item.formType === 'haccp');
-            setSubmissions(hccpData);
+            // Szűrés: Csak a 'haccp' típusúak
+            const haccpData = data.filter((item: any) => item.formType === 'haccp');
+            setSubmissions(haccpData);
          }
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
@@ -99,7 +99,7 @@ export default function AdminHCCPPage() {
       setEditItem({ ...editItem, [e.target.name]: e.target.value });
    };
 
-   // --- HCCP EMAIL KÜLDÉS ---
+   // --- HACCP EMAIL KÜLDÉS ---
    const handleSendEmail = async (e: React.FormEvent) => {
       e.preventDefault();
       setSending(true);
@@ -108,7 +108,7 @@ export default function AdminHCCPPage() {
          if (!pdfBlob) { setSending(false); return; }
 
          const formData = new FormData();
-         formData.append("file", pdfBlob as Blob, "HCCP_Megrendelo.pdf");
+         formData.append("file", pdfBlob as Blob, "HACCP_Megrendelo.pdf");
          formData.append("email", targetEmail);
          formData.append("companyName", emailItem.companyName || "Ismeretlen");
          formData.append("haccpServices", emailItem.haccp_services || "HACCP Szolgáltatás");
@@ -119,7 +119,7 @@ export default function AdminHCCPPage() {
          const result = await res.json();
 
          if (res.ok) {
-            alert(`HCCP Email elküldve!\nCímzett: ${targetEmail}`);
+            alert(`HACCP Email elküldve!\nCímzett: ${targetEmail}`);
             setEmailItem(null);
          } else {
             alert("Hiba: " + (result.error || JSON.stringify(result)));
@@ -170,7 +170,7 @@ export default function AdminHCCPPage() {
       if (fontLoaded) doc.setFont("Roboto", "normal");
       doc.setFontSize(12);
       doc.setTextColor(80);
-      doc.text("HCCP Dokumentáció Adatlap", 20, 28);
+      doc.text("HACCP Dokumentáció Adatlap", 20, 28);
       doc.setDrawColor(...primaryColor);
       doc.setLineWidth(0.5);
       doc.line(20, 33, 190, 33);
@@ -271,13 +271,13 @@ export default function AdminHCCPPage() {
             doc.setFontSize(8);
             doc.setTextColor(150);
             if (fontLoaded) doc.setFont("Roboto", "normal");
-            doc.text(`Trident Shield Group Kft. | HCCP | ${data.pageNumber}. oldal`, 20, doc.internal.pageSize.getHeight() - 10);
+            doc.text(`Trident Shield Group Kft. | HACCP | ${data.pageNumber}. oldal`, 20, doc.internal.pageSize.getHeight() - 10);
          },
       });
 
       if (returnBlob) return doc.output("blob");
       const cleanName = (data.companyName || 'haccp').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      doc.save(`HCCP_${cleanName}.pdf`);
+      doc.save(`HACCP_${cleanName}.pdf`);
    };
 
    if (!isAuthenticated) {

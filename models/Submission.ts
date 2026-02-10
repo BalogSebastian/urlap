@@ -3,12 +3,12 @@ import mongoose, { Schema, models } from "mongoose";
 
 const SubmissionSchema = new Schema({
   // --- 0. ŰRLAP TÍPUSA (ÚJ) ---
-  // Ez dönti el, hogy Tűzvédelmi ('fire') vagy VBS ('vbs') adatlap
+  // Ez dönti el, hogy Tűzvédelmi ('fire') vagy VBF ('vbf') adatlap
   formType: { type: String, default: 'fire' },
 
-  // --- VBS SPECIFIKUS MEZŐK (ÚJ) ---
-  vbs_services: { type: String }, // Milyen vizsgálatot kér (vesszővel elválasztva)
-  vbs_prev_doc: { type: String }, // Rendelkezik korábbi dokumentummal? (Igen/Nem)
+  // --- VBF SPECIFIKUS MEZŐK (ÚJ) ---
+  vbf_services: { type: String }, // Milyen vizsgálatot kér (vesszővel elválasztva)
+  vbf_prev_doc: { type: String }, // Rendelkezik korábbi dokumentummal? (Igen/Nem)
 
   // --- HACCP SPECIFIKUS MEZŐK (BŐVÍTETT) ---
   haccp_services: { type: String }, // Szolgáltatás kiválasztása
