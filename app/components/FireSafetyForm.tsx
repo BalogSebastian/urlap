@@ -880,10 +880,10 @@ export default function FireSafetyForm() {
                                 <p className="text-xs text-gray-500 mb-4">Kérjük, ellenőrizze a falakon lévő matricákat az alábbi képek alapján.</p>
 
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <ImageCheckbox theme={currentTheme} name="sign_firstaid" label="Elsősegély" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/First_aid_sign.svg/300px-First_aid_sign.svg.png" />
-                                    <ImageCheckbox theme={currentTheme} name="sign_extinguisher" label="Tűzoltó készülék" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/ISO_7010_F001.svg/300px-ISO_7010_F001.svg.png" />
-                                    <ImageCheckbox theme={currentTheme} name="sign_escape" label="Menekülési út" src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Emergency_exit_icon.svg/300px-Emergency_exit_icon.svg.png" />
-                                    <ImageCheckbox theme={currentTheme} name="sign_no_smoking" label="Dohányozni Tilos" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/No_Smoking.svg/300px-No_Smoking.svg.png" />
+                                    <ImageCheckbox theme={currentTheme} name="sign_firstaid" label="Elsősegély" src="/elsosegely.jpg" />
+                                    <ImageCheckbox theme={currentTheme} name="sign_extinguisher" label="Tűzoltó készülék" src="/tuzoltokeszulek.jpg" />
+                                    <ImageCheckbox theme={currentTheme} name="sign_escape" label="Menekülési út" src="/menekulesiutvonal.jpg" />
+                                    <ImageCheckbox theme={currentTheme} name="sign_no_smoking" label="Dohányozni Tilos" src="/dohanyozni tilos.jpg" />
 
                                     <CheckboxCard theme={currentTheme} name="sign_gas" label="Gáz főelzáró" />
                                     <CheckboxCard theme={currentTheme} name="sign_emergency" label="Segélyhívó számok" />
