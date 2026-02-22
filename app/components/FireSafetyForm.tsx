@@ -327,7 +327,7 @@ export default function FireSafetyForm({
                                 <InputGroup theme={currentTheme} label="Egység neve" name="companyName" placeholder="pl. Falatozó Kft." fullWidth required />
                                 <InputGroup theme={currentTheme} label="Egység címe" name="siteAddress" placeholder="Pontos cím" required />
                                 <InputGroup theme={currentTheme} label="Telefon" name="managerPhone" placeholder="+36..." fullWidth />
-                                <InputGroup theme={currentTheme} label="Email" name="managerEmail" placeholder="info@..." type="email" fullWidth />
+                                <InputGroup theme={currentTheme} label="Email" name="managerEmail" placeholder="info@..." type="email" fullWidth required />
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-slate-100">
@@ -662,6 +662,7 @@ export default function FireSafetyForm({
                                 <InputGroup theme={currentTheme} label="Képviseletre jogosult személy neve" name="managerName" placeholder="Vezető neve" fullWidth />
                                 <InputGroup theme={currentTheme} label="Képviselő telefonos elérhetősége" name="managerPhone" placeholder="+36..." fullWidth />
                                 <InputGroup theme={currentTheme} label="Ügyfél székhelye" name="headquarters" placeholder="Cím" required />
+                                <InputGroup theme={currentTheme} label="E-mail cím" name="managerEmail" placeholder="kapcsolattarto@ceg.hu" type="email" fullWidth required />
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -702,7 +703,7 @@ export default function FireSafetyForm({
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-3">
                                     <InputGroup theme={currentTheme} label="Név" name="managerName" placeholder="Vezető neve" fullWidth />
                                     <InputGroup theme={currentTheme} label="Telefonszám" name="managerPhone" placeholder="+36..." fullWidth />
-                                    <InputGroup theme={currentTheme} label="E-mail cím" name="managerEmail" placeholder="vezeto@ceg.hu" type="email" fullWidth />
+                                    <InputGroup theme={currentTheme} label="E-mail cím" name="managerEmail" placeholder="vezeto@ceg.hu" type="email" fullWidth required />
                                 </div>
                             </div>
                         </Section>
