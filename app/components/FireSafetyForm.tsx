@@ -3,10 +3,23 @@
 import React, { useState } from "react";
 
 type Theme = 'cyan' | 'orange' | 'gray' | 'purple';
+type ActiveTab = 'fire' | 'vbf' | 'haccp' | 'generate';
 
-export default function FireSafetyForm() {
-    const [activeTab, setActiveTab] = useState<'fire' | 'vbf' | 'haccp' | 'generate'>('fire');
+interface FireSafetyFormProps {
+    initialTab?: ActiveTab;
+    lockedTab?: boolean;
+    hideGenerateTab?: boolean;
+}
+
+export default function FireSafetyForm({
+    initialTab = 'fire',
+    lockedTab = false,
+    hideGenerateTab = false,
+}: FireSafetyFormProps) {
+    const [activeTab, setActiveTab] = useState<ActiveTab>(initialTab);
     const [genTokenDuration, setGenTokenDuration] = useState<string>('1h');
+    const [genFormType, setGenFormType] = useState<'fire' | 'vbf' | 'haccp'>('fire');
+    const [generatedLink, setGeneratedLink] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -24,10 +37,75 @@ export default function FireSafetyForm() {
             (activeTab === 'vbf' ? 'orange' :
                 (activeTab === 'haccp' ? 'gray' : 'purple'));
 
-    // --- MENTÉS LOGIKA ---
+    // --- GENERÁLÁS (MEGHÍVÓ LINK) ---
+    const handleGenerate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setGeneratedLink(null);
+
+        const form = e.target as HTMLFormElement;
+        const formData = new FormData(form);
+
+        const email = (formData.get("gen_email") as string || "").trim();
+
+        if (!email) {
+            alert("Kérjük, adjon meg egy érvényes e-mail címet.");
+            setLoading(false);
+            return;
+        }
+
+        let durationMinutes = 60;
+
+        if (genTokenDuration === '1h') durationMinutes = 60;
+        else if (genTokenDuration === '2h') durationMinutes = 120;
+        else if (genTokenDuration === '24h') durationMinutes = 24 * 60;
+        else if (genTokenDuration === '48h') durationMinutes = 48 * 60;
+        else if (genTokenDuration === 'custom') {
+            const amountRaw = (formData.get("gen_custom_amount") as string) || "1";
+            const unit = (formData.get("gen_custom_unit") as string) || "hours";
+            const amount = Math.max(1, Number(amountRaw) || 1);
+            durationMinutes = unit === "days" ? amount * 24 * 60 : amount * 60;
+        }
+
+        try {
+            const res = await fetch("/api/generate-invite", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email,
+                    formType: genFormType,
+                    durationMinutes,
+                }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => null);
+                alert(err?.error || "Hiba történt a meghívó generálása közben.");
+                return;
+            }
+
+            const data = await res.json();
+            if (data.url) {
+                setGeneratedLink(data.url);
+                alert("Meghívó link sikeresen elküldve a címzettnek.");
+            } else {
+                alert("A link generálása sikerült, de nem kaptunk vissza URL-t.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Szerver hiba a meghívó generálása során.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- MENTÉS LOGIKA (ADATLAP BEKÜLDÉS) ---
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (activeTab === 'generate') return; // A generálás fülön a gomb inaktív
+        if (activeTab === 'generate') {
+            await handleGenerate(e);
+            return;
+        }
         setLoading(true);
 
         const form = e.target as HTMLFormElement;
@@ -102,37 +180,39 @@ export default function FireSafetyForm() {
                         ${activeTab === 'fire' ? 'left-1.5 bg-cyan-500' : ''}
                         ${activeTab === 'vbf' ? 'left-[148px] bg-orange-500' : ''}
                         ${activeTab === 'haccp' ? 'left-[290px] bg-emerald-500' : ''}
-                        ${activeTab === 'generate' ? 'left-[432px] bg-indigo-500' : ''}
+                        ${!hideGenerateTab && activeTab === 'generate' ? 'left-[432px] bg-indigo-500' : ''}
                     `}></div>
 
                     <button
                         type="button"
-                        onClick={() => setActiveTab('fire')}
-                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'fire' ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => !lockedTab && setActiveTab('fire')}
+                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'fire' ? 'text-white' : lockedTab ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         🔥 Tűzvédelmi
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab('vbf')}
-                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'vbf' ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => !lockedTab && setActiveTab('vbf')}
+                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'vbf' ? 'text-white' : lockedTab ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         ⚡ VBF Adatlap
                     </button>
                     <button
                         type="button"
-                        onClick={() => setActiveTab('haccp')}
-                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'haccp' ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
+                        onClick={() => !lockedTab && setActiveTab('haccp')}
+                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'haccp' ? 'text-white' : lockedTab ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                         🛡️ HACCP
                     </button>
-                    <button
-                        type="button"
-                        onClick={() => setActiveTab('generate')}
-                        className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'generate' ? 'text-white' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                        🚀 Generálás
-                    </button>
+                    {!hideGenerateTab && (
+                        <button
+                            type="button"
+                            onClick={() => !lockedTab && setActiveTab('generate')}
+                            className={`relative w-[140px] py-3 rounded-xl font-bold text-sm transition-colors z-10 flex items-center justify-center gap-2 ${activeTab === 'generate' ? 'text-white' : lockedTab ? 'text-slate-300 cursor-not-allowed' : 'text-slate-500 hover:text-slate-700'}`}
+                        >
+                            🚀 Generálás
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -992,6 +1072,42 @@ export default function FireSafetyForm() {
                             <InputGroup theme={currentTheme} label="E-mail cím" name="gen_email" type="email" placeholder="cimzett@pelda.hu" fullWidth />
 
                             <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                                <Label theme={currentTheme}>Melyik szekciót szeretné kiküldeni?</Label>
+                                <div className="flex flex-col sm:flex-row gap-4 mt-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setGenFormType('fire')}
+                                        className={`flex-1 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${genFormType === 'fire'
+                                            ? 'bg-white border-indigo-500 text-indigo-700 shadow-sm'
+                                            : 'bg-indigo-100/40 border-indigo-200 text-slate-700 hover:bg-indigo-100'
+                                            }`}
+                                    >
+                                        🔥 Tűzvédelmi Adatlap
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setGenFormType('vbf')}
+                                        className={`flex-1 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${genFormType === 'vbf'
+                                            ? 'bg-white border-indigo-500 text-indigo-700 shadow-sm'
+                                            : 'bg-indigo-100/40 border-indigo-200 text-slate-700 hover:bg-indigo-100'
+                                            }`}
+                                    >
+                                        ⚡ VBF Adatlap
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setGenFormType('haccp')}
+                                        className={`flex-1 px-4 py-3 rounded-xl border text-sm font-bold transition-all ${genFormType === 'haccp'
+                                            ? 'bg-white border-indigo-500 text-indigo-700 shadow-sm'
+                                            : 'bg-indigo-100/40 border-indigo-200 text-slate-700 hover:bg-indigo-100'
+                                            }`}
+                                    >
+                                        🛡️ HACCP Adatlap
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
                                 <Label theme={currentTheme}>Token érvényességi ideje</Label>
                                 <div className="grid grid-cols-1 gap-4 mt-3">
                                     <div className="flex flex-wrap gap-4">
@@ -1030,6 +1146,12 @@ export default function FireSafetyForm() {
                                 </div>
                             </div>
                         </div>
+                        {generatedLink && (
+                            <div className="mt-6 p-4 bg-white rounded-2xl border border-indigo-100 text-sm text-slate-700 break-all">
+                                <div className="font-bold text-slate-900 mb-1">Generált link (másolható):</div>
+                                <div>{generatedLink}</div>
+                            </div>
+                        )}
                     </Section>
                 )}
 
@@ -1039,10 +1161,14 @@ export default function FireSafetyForm() {
                         ${activeTab === 'fire' ? 'bg-gradient-to-r from-cyan-600 to-cyan-400 hover:from-cyan-500 hover:to-cyan-300 shadow-cyan-200' : ''}
                         ${activeTab === 'vbf' ? 'bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 shadow-orange-200' : ''}
                         ${activeTab === 'haccp' ? 'bg-gradient-to-r from-emerald-600 to-emerald-400 hover:from-emerald-500 hover:to-emerald-300 shadow-emerald-200' : ''}
-                        ${activeTab === 'generate' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-200 cursor-not-allowed opacity-80' : ''}
+                        ${activeTab === 'generate' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-200' : ''}
                     `}>
                         <span className="relative flex items-center gap-3">
-                            {loading ? "MENTÉS FOLYAMATBAN..." : (activeTab === 'fire' ? "ADATLAP BEKÜLDÉSE" : (activeTab === 'generate' ? "GENERÁLÁS ÉS KÜLDÉS" : "MEGRENDELÉS KÜLDÉSE"))}
+                            {loading
+                                ? (activeTab === 'generate' ? "GENERÁLÁS..." : "MENTÉS FOLYAMATBAN...")
+                                : (activeTab === 'fire'
+                                    ? "ADATLAP BEKÜLDÉSE"
+                                    : (activeTab === 'generate' ? "GENERÁLÁS ÉS KIKÜLDÉS" : "MEGRENDELÉS KÜLDÉSE"))}
                             {!loading && <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>}
                         </span>
                     </button>
