@@ -6,16 +6,33 @@ import { FiShield, FiZap, FiPieChart, FiArrowRight, FiLock, FiLogOut, FiActivity
 
 export default function MasterAdminPortal() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === "admintrident" && password === "admintrident") {
-      setIsAuthenticated(true);
-    } else {
-      alert("Helytelen adatok!");
-    }
+    setError("");
+    fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    })
+      .then(async res => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => null);
+          setError(data?.error || "Hibás jelszó.");
+          return;
+        }
+        setIsAuthenticated(true);
+      })
+      .catch(() => {
+        setError("Nem sikerült csatlakozni a szerverhez.");
+      });
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword("");
   };
 
   if (!isAuthenticated) {
@@ -35,16 +52,6 @@ export default function MasterAdminPortal() {
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-400 uppercase ml-2">Felhasználónév</label>
-              <input
-                type="text"
-                placeholder="admintrident"
-                value={username}
-                onChange={e => setUsername(e.target.value)}
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700"
-              />
-            </div>
-            <div className="space-y-1">
               <label className="text-xs font-bold text-slate-400 uppercase ml-2">Jelszó</label>
               <input
                 type="password"
@@ -56,6 +63,16 @@ export default function MasterAdminPortal() {
             </div>
             <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold shadow-xl shadow-indigo-500/20 active:scale-95 transition-all mt-4">Bejelentkezés</button>
           </form>
+          {error && (
+            <p className="mt-4 text-sm text-rose-600 font-medium text-center">
+              {error}
+            </p>
+          )}
+          <div className="mt-6 text-center">
+            <Link href="/admin-password-setup" className="text-xs text-indigo-600 hover:text-indigo-700 font-semibold underline">
+              Elfelejtett jelszó / Új jelszó beállítása
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -121,7 +138,7 @@ export default function MasterAdminPortal() {
 
         <footer className="mt-20 text-center border-t border-slate-200 pt-8">
           <button
-            onClick={() => setIsAuthenticated(false)}
+            onClick={handleLogout}
             className="px-6 py-3 bg-white hover:bg-rose-50 text-rose-500 rounded-xl shadow-sm border border-slate-200 font-bold text-sm flex items-center gap-2 transition-all active:scale-95 mx-auto"
           >
             <FiLogOut /> Kijelentkezés

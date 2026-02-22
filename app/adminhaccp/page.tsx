@@ -29,8 +29,8 @@ function arrayBufferToBase64(buffer: ArrayBuffer) {
 
 export default function AdminHACCPPage() {
    const [isAuthenticated, setIsAuthenticated] = useState(false);
-   const [username, setUsername] = useState("");
    const [password, setPassword] = useState("");
+   const [authError, setAuthError] = useState("");
 
    const [submissions, setSubmissions] = useState<any[]>([]);
    const [loading, setLoading] = useState(false);
@@ -67,8 +67,23 @@ export default function AdminHACCPPage() {
 
    const handleLogin = (e: React.FormEvent) => {
       e.preventDefault();
-      if (username === "admin" && password === "admin") setIsAuthenticated(true);
-      else alert("Helytelen adatok!");
+      setAuthError("");
+      fetch("/api/admin/login", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ password }),
+      })
+         .then(async res => {
+            if (!res.ok) {
+               const data = await res.json().catch(() => null);
+               setAuthError(data?.error || "Hibás jelszó.");
+               return;
+            }
+            setIsAuthenticated(true);
+         })
+         .catch(() => {
+            setAuthError("Nem sikerült csatlakozni a szerverhez.");
+         });
    };
 
    const deleteSubmission = async (id: string) => {
@@ -294,15 +309,22 @@ export default function AdminHACCPPage() {
                <p className="text-center text-slate-500 mb-8 font-medium">Lépj be a folytatáshoz</p>
                <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-1">
-                     <label className="text-xs font-bold text-slate-400 uppercase ml-2">Felhasználónév</label>
-                     <input type="text" placeholder="admin" value={username} onChange={e => setUsername(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all font-bold text-slate-700" />
-                  </div>
-                  <div className="space-y-1">
                      <label className="text-xs font-bold text-slate-400 uppercase ml-2">Jelszó</label>
-                     <input type="password" placeholder="•••••" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all font-bold text-slate-700" />
+                     <input
+                        type="password"
+                        placeholder="•••••"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                        className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all font-bold text-slate-700"
+                     />
                   </div>
                   <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-4 rounded-xl font-bold shadow-xl shadow-emerald-500/20 active:scale-95 transition-all mt-4">Bejelentkezés</button>
                </form>
+               {authError && (
+                  <p className="mt-4 text-sm text-rose-600 font-medium text-center">
+                     {authError}
+                  </p>
+               )}
             </div>
          </div>
       );
