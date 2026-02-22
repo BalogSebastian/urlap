@@ -12,8 +12,27 @@ import {
   FiCalendar
 } from "react-icons/fi"; // Telepítsd: npm install react-icons
 
+interface RecentActivityItem {
+  id: string;
+  company: string;
+  type: "fire" | "vbf";
+  date: string | number | Date;
+}
+
+interface StatsResponse {
+  total: number;
+  fireCount: number;
+  vbfCount: number;
+  thisMonth: {
+    total: number;
+    fire: number;
+    vbf: number;
+  };
+  recentActivity: RecentActivityItem[];
+}
+
 export default function StatsAdmin() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<StatsResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,7 +44,7 @@ export default function StatsAdmin() {
       });
   }, []);
 
-  if (loading) {
+  if (loading || !stats) {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center">
         <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
@@ -133,7 +152,7 @@ export default function StatsAdmin() {
             </div>
 
             <div className="space-y-6">
-              {stats.recentActivity.map((item: any, idx: number) => (
+              {stats.recentActivity.map((item: RecentActivityItem) => (
                 <div key={item.id} className="group flex items-start gap-4 cursor-default">
                   <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${item.type === 'fire' ? 'bg-rose-500' : 'bg-amber-500'} ring-4 ${item.type === 'fire' ? 'ring-rose-50' : 'ring-amber-50'}`}></div>
                   <div className="flex-1 border-b border-slate-50 pb-4 group-last:border-0">
@@ -163,7 +182,15 @@ export default function StatsAdmin() {
 
 // --- SEGÉDKOMPONENSEK ---
 
-function PremiumStatCard({ title, value, icon, gradient, percentage }: any) {
+interface PremiumStatCardProps {
+  title: string;
+  value: number;
+  icon: React.ReactNode;
+  gradient: string;
+  percentage: string;
+}
+
+function PremiumStatCard({ title, value, icon, gradient, percentage }: PremiumStatCardProps) {
   return (
     <div className="relative group overflow-hidden bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200/60 transition-all hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1">
       <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${gradient} opacity-[0.03] rounded-bl-full`}></div>
@@ -183,7 +210,14 @@ function PremiumStatCard({ title, value, icon, gradient, percentage }: any) {
   );
 }
 
-function HaviMetric({ label, value, sub, color }: any) {
+interface HaviMetricProps {
+  label: string;
+  value: number;
+  sub: string;
+  color: string;
+}
+
+function HaviMetric({ label, value, sub, color }: HaviMetricProps) {
   return (
     <div className="p-10 flex flex-col items-center justify-center text-center group hover:bg-slate-50/50 transition-colors">
       <p className="text-slate-400 text-[10px] uppercase font-black tracking-[0.2em] mb-4">{label}</p>

@@ -156,7 +156,7 @@ export default function AdminVBFPage() {
       }
     } catch (e) { }
 
-    const primaryColor = [220, 100, 0] as [number, number, number]; // Narancs
+    const primaryColor: [number, number, number] = [220, 100, 0]; // Narancs
 
     // --- LOGO BETÖLTÉS ---
     let logoBase64: string | null = null;
@@ -190,7 +190,7 @@ export default function AdminVBFPage() {
     const sectionStyle = {
       fillColor: [255, 248, 240] as [number, number, number],
       textColor: primaryColor,
-      fontStyle: 'bold' as 'bold',
+      fontStyle: "bold" as const,
       fontSize: 11,
       cellPadding: { top: 6, bottom: 6, left: 2 }
     };

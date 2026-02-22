@@ -150,7 +150,7 @@ export default function AdminHACCPPage() {
          }
       } catch (e) { }
 
-      const primaryColor = [16, 185, 129] as [number, number, number]; // Emerald Green
+      const primaryColor: [number, number, number] = [16, 185, 129]; // Emerald Green
 
       // --- LOGO ---
       try {
@@ -178,7 +178,7 @@ export default function AdminHACCPPage() {
       const sectionStyle = {
          fillColor: [236, 253, 245] as [number, number, number],
          textColor: primaryColor,
-         fontStyle: 'bold' as 'bold',
+         fontStyle: "bold" as const,
          fontSize: 11,
          cellPadding: { top: 6, bottom: 6, left: 2 }
       };

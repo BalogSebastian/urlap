@@ -32,12 +32,24 @@ export default function AdminPage() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
 
-    const [submissions, setSubmissions] = useState<any[]>([]);
+    interface FireSubmission {
+        _id?: string;
+        companyName?: string;
+        headquarters?: string;
+        siteAddress?: string;
+        managerName?: string;
+        createdAt?: string;
+        notes?: string;
+        formType?: string;
+        [key: string]: string | null | undefined;
+    }
+
+    const [submissions, setSubmissions] = useState<FireSubmission[]>([]);
     const [loading, setLoading] = useState(false);
 
     // --- MODAL ÁLLAPOTOK ---
-    const [editItem, setEditItem] = useState<any>(null);
-    const [emailItem, setEmailItem] = useState<any>(null);
+    const [editItem, setEditItem] = useState<FireSubmission | null>(null);
+    const [emailItem, setEmailItem] = useState<FireSubmission | null>(null);
 
     // EMAIL OPCIÓK ÁLLAPOTAI
     const [targetEmail, setTargetEmail] = useState("sebimbalog@gmail.com");
@@ -59,7 +71,7 @@ export default function AdminPage() {
             const data = await res.json();
             if (res.ok) {
                 // Szűrés: Csak a 'fire' (Tűzvédelmi) adatlapok. (Ha nincs típus, akkor is ide tartozik alapértelmezetten)
-                const fireData = data.filter((item: any) => !item.formType || item.formType === 'fire');
+                const fireData = data.filter((item: { formType?: string }) => !item.formType || item.formType === 'fire');
                 setSubmissions(fireData);
             }
             else console.error("API Hiba:", data.error);
@@ -86,7 +98,8 @@ export default function AdminPage() {
     };
 
     // --- MŰVELETEK ---
-    const deleteSubmission = async (id: string) => {
+    const deleteSubmission = async (id: string | undefined) => {
+        if (!id) return;
         if (!confirm("Biztosan törölni szeretné véglegesen az adatbázisból?")) return;
         try {
             const res = await fetch(`/api/submissions/${id}`, { method: "DELETE" });
@@ -130,6 +143,10 @@ export default function AdminPage() {
     // --- EMAIL KÜLDÉS ---
     const handleSendEmail = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!emailItem) {
+            alert("Nincs kiválasztott adatlap az email küldéshez.");
+            return;
+        }
         setSending(true);
         try {
             const pdfBlob = await generatePDF(emailItem, true);
@@ -178,8 +195,9 @@ export default function AdminPage() {
         }
     };
 
-    const tr = (val: string) => {
-        const map: any = {
+    const tr = (val: string | null | undefined) => {
+        if (!val) return "-";
+        const map: Record<string, string> = {
             'yes': 'Igen', 'no': 'Nem', 'dk': 'Nem tudom', 'unknown': 'Nem tudom',
             'brick': 'Tégla falazat', 'concrete': 'Panel / Vasbeton', 'steel': 'Fém / Acélváz', 'light': 'Könnyűszerkezetes',
             'plastered': 'Vakolt mennyezet', 'wood': 'Fagerendás', 'metal': 'Trapézlemez / Acél',
@@ -191,11 +209,11 @@ export default function AdminPage() {
             'inside': 'Épületen belül', 'room': 'Külön helyiségben', 'outside': 'Udvaron / Kukatárolóban',
             'pb': 'PB Gázpalack',
         };
-        return map[val] || val || "-";
+        return map[val] ?? val;
     };
 
     // --- PDF GENERÁTOR (JAVÍTOTT OLDALTÖRÉSSEL ÉS TÍPUS HIBÁVAL) ---
-    const generatePDF = async (data: any, returnBlob = false) => {
+    const generatePDF = async (data: FireSubmission, returnBlob = false) => {
         const doc = new jsPDF();
         const fontUrl = "https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf";
         let fontLoaded = false;
@@ -224,7 +242,7 @@ export default function AdminPage() {
             }
         } catch (e) { console.error("Logo betöltési hiba:", e); }
 
-        const primaryColor = [20, 50, 120] as [number, number, number];
+        const primaryColor: [number, number, number] = [20, 50, 120];
 
         // --- Címsor & Logo ---
         if (logoBase64) {
@@ -246,7 +264,8 @@ export default function AdminPage() {
         doc.setLineWidth(0.5);
         doc.line(20, 33, 190, 33);
 
-        const join = (arr: any[]) => arr ? arr.filter(Boolean).join(", ") : "-";
+        const join = (arr: Array<string | undefined | null>) =>
+            arr && arr.length > 0 ? arr.filter(Boolean).join(", ") : "-";
         const activityTypes = join([data.type_shop, data.type_office, data.type_warehouse, data.type_workshop, data.type_social, data.type_education, data.type_other]);
         const rooms = join([data.room_office, data.room_guest, data.room_kitchen, data.room_warehouse, data.room_social, data.room_workshop]);
         const wastes = join([data.waste_communal, data.waste_select, data.waste_hazard, data.waste_industrial]);
@@ -255,7 +274,7 @@ export default function AdminPage() {
         const sectionStyle = {
             fillColor: [245, 247, 250] as [number, number, number],
             textColor: primaryColor,
-            fontStyle: 'bold' as 'bold',
+            fontStyle: "bold" as const,
             fontSize: 11,
             cellPadding: { top: 6, bottom: 6, left: 2 }
         };
@@ -344,15 +363,15 @@ export default function AdminPage() {
 
             autoTable(doc, {
                 startY: currentY,
-                body: pageBody,
+                body: pageBody as any,
                 theme: 'grid',
                 pageBreak: 'auto',
                 margin: { top: 25, bottom: 30, left: 20, right: 14 },
                 styles: { font: fontLoaded ? "Roboto" : undefined, fontSize: 10, cellPadding: 4 },
                 // JAVÍTÁS: A válaszok (1-es oszlop) is félkövérek (fontStyle: 'bold')
                 columnStyles: {
-                    0: { cellWidth: 70, fontStyle: 'bold' },
-                    1: { fontStyle: 'bold' }
+                    0: { cellWidth: 70, fontStyle: 'bold' as const },
+                    1: { fontStyle: 'bold' as const }
                 },
                 didDrawPage: (d) => {
                     const h = doc.internal.pageSize.height;
@@ -482,8 +501,8 @@ export default function AdminPage() {
                                                 <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
                                                     📍 {sub.siteAddress}
                                                 </span>
-                                                <span className="text-xs font-semibold text-slate-400">
-                                                    📅 {new Date(sub.createdAt).toLocaleDateString("hu-HU")}
+                                            <span className="text-xs font-semibold text-slate-400">
+                                                    📅 {sub.createdAt ? new Date(sub.createdAt).toLocaleDateString("hu-HU") : "-"}
                                                 </span>
                                                 {sub.notes && (
                                                     <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md uppercase tracking-wide">

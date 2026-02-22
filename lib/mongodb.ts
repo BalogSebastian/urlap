@@ -4,15 +4,23 @@ import mongoose from "mongoose";
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+  throw new Error("Please define the MONGODB_URI environment variable inside .env.local");
 }
 
-// Global variable to cache the connection in development
-let cached = (global as any).mongoose;
+type MongooseConnection = typeof mongoose;
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
-}
+type MongooseCache = {
+  conn: MongooseConnection | null;
+  promise: Promise<MongooseConnection> | null;
+};
+
+const globalForMongoose = globalThis as typeof globalThis & {
+  mongoose?: MongooseCache;
+};
+
+const cached: MongooseCache =
+  globalForMongoose.mongoose ??
+  (globalForMongoose.mongoose = { conn: null, promise: null });
 
 async function dbConnect() {
   if (cached.conn) {
@@ -24,11 +32,9 @@ async function dbConnect() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
-      return mongoose;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI!, opts);
   }
-  
+
   try {
     cached.conn = await cached.promise;
   } catch (e) {

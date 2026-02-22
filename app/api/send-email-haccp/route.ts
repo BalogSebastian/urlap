@@ -34,8 +34,7 @@ export async function POST(req: Request) {
       const greeting = salutationName ? `Kedves ${salutationName}!` : "Kedves Partnerünk!";
 
       // Aláírás logika
-      let signature = "Trident Shield Group Kft.";
-      // Itt lehetne egyedi logika, de a VBF-nél is egyszerű
+      const signature = "Trident Shield Group Kft.";
 
       const htmlContent = `
       <div style="font-family: Arial, sans-serif; color: #000000; font-size: 14px; line-height: 1.6;">
