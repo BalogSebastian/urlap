@@ -199,17 +199,38 @@ export default function AdminHACCPPage() {
       };
 
       // --- TÁBLÁZAT ÉPÍTÉS (MINDEN ADAT) ---
+      let suppliersListStr = '-';
+      try {
+         const raw = data['haccp_suppliers_list'] as string | undefined;
+         if (raw) {
+            const arr = JSON.parse(raw) as Array<{ company?: string; product?: string; regularity?: string; contract?: string }>;
+            if (Array.isArray(arr) && arr.length) {
+               suppliersListStr = arr.map((s) => {
+                  const c = s.company ?? '';
+                  const p = s.product ?? '';
+                  const r = s.regularity ?? '';
+                  const cn = s.contract ?? '';
+                  return `${c} – ${p} (${r}, Szerződés: ${cn})`;
+               }).join(' | ');
+            }
+         }
+      } catch { }
+
       const tableBody = [
          // 1. SZOLGÁLTATÁS
          [{ content: '1. Szolgáltatás és Típus', colSpan: 2, styles: sectionStyle }],
          ['Szolgáltatás típusa', data.haccp_services || '-'],
          ['Korábbi dokumentáció', data.haccp_prev_doc || '-'],
-         ['Vendéglátó egység típusa', data.haccp_unit_type || '-'],
+         ['Vendéglátó egység típusa', [data.haccp_unit_type, data.haccp_unit_type_other].filter(Boolean).join(', ') || '-'],
 
          // 2. EGYSÉG ADATAI
          [{ content: '2. Egység Adatai', colSpan: 2, styles: sectionStyle }],
          ['Cégnév / Egység neve', data.companyName || '-'],
          ['Cím (Telephely)', data.siteAddress || '-'],
+         ['Cégjegyzékszám / EV szám', data.companyRegNumber || '-'],
+         ['Adószám', data.taxNumber || '-'],
+         ['Élelmiszerlánc-felügyeleti azonosító', data.foodChainId || '-'],
+         ['Telephely azonosító', data.siteId || '-'],
          ['Üzletvezető neve', data.managerName || '-'],
          ['Beosztás', data.haccp_manager || '-'],
          ['Telefon', data.managerPhone || '-'],
@@ -217,30 +238,35 @@ export default function AdminHACCPPage() {
          ['HACCP Felügyelő', data.haccp_haccp_supervisor || 'Nincs külön jelölve'],
 
          // 3. HELYISÉGEK
-         [{ content: '3. Helyiségek és Berendezések', colSpan: 2, styles: sectionStyle }],
-         ['Helyiségek', data.haccp_rooms || '-'],
-         ['Személyzeti rész', data.haccp_staff_area || '-'],
-         ['Biztonsági eszközök', data.haccp_equipment || '-'],
-         ['Elsősegély doboz', data.haccp_first_aid || '-'],
-         ['Tűzoltó készülékek', `${data.haccp_extinguishers || 0} db`],
-         ['Gázellátás', data.haccp_gas || '-'],
-         ['Kitevő táblák', data.haccp_signs || '-'],
+         [{ content: '3. Helyiségek (funkció szerint)', colSpan: 2, styles: sectionStyle }],
+         ['Helyiségek (funkciók)', data.haccp_rooms_functional || '-'],
+         ['Külön kézmosó az előkészítőben', data.haccp_handwash_prep || '-'],
+         ['Hideg–meleg víz biztosított', data.haccp_handwash_hotcold || '-'],
+         ['Mosogatási rendszer', data.haccp_washing_system || '-'],
 
          // 4. TERMÉKEK & ALAPANYAGOK
          [{ content: '4. Termékek és Alapanyagok', colSpan: 2, styles: sectionStyle }],
          ['Forgalmazott termékkörök', data.haccp_product_groups || '-'],
+         ['Meleg/hideg étel előállítása', data.haccp_hotcold_prepared || '-'],
+         ['Hús és hentesáru művelet', data.haccp_meat_operations || '-'],
          ['Beszállítók leírása', data.haccp_suppliers || '-'],
+         ['Beszállítók listája', suppliersListStr],
          ['Beszállítói igazolás', data.haccp_supplier_verify || '-'],
          ['Csomagolóanyag beszerzés', data.haccp_packaging || '-'],
-         ['Allergének elkülönítése', data.haccp_allergen_separation || '-'],
+         ['Élelmiszerrel érintkezhető minősítés', data.haccp_packaging_foodgrade || '-'],
+         ['Megfelelőségi nyilatkozat', data.haccp_packaging_compliance || '-'],
+         ['Csomagolóanyag használat', data.haccp_packaging_reuse || '-'],
+         ['Allergén kezelése', data.haccp_allergen_handling || '-'],
          ['Allergén jelölés', data.haccp_allergen_labeling || '-'],
 
          // MÁTRIXOK
-         [{ content: 'Beszerzési Mátrix', colSpan: 2, styles: { fillColor: [240, 240, 240], fontStyle: 'bold' } }],
+         [{ content: 'Beszerzési Mátrix', colSpan: 2, styles: { fillColor: [240, 240, 240] as [number, number, number], fontStyle: 'bold' as const } }],
          ['Hús beszerzés', data.haccp_meat_sourcing || '-'],
          ['Zöldség/Gyümölcs beszerzés', data.haccp_veg_sourcing || '-'],
          ['Hal beszerzés', data.haccp_fish_sourcing || '-'],
          ['Tojás beszerzés', data.haccp_egg_sourcing || '-'],
+         ['Tojás felhasználása (nyersen)', data.haccp_egg_used_raw || '-'],
+         ['Hőkezelés nélküli tojásos termék', data.haccp_egg_noheat_product || '-'],
 
          // 5. TECHNOLÓGIA
          [{ content: '5. Technológia és Működés', colSpan: 2, styles: sectionStyle }],
@@ -253,15 +279,26 @@ export default function AdminHACCPPage() {
 
          // 6. LOGISZTIKA & HULLADÉK
          [{ content: '6. Kiszállítás és Hulladék', colSpan: 2, styles: sectionStyle }],
-         ['Kiszállítás partnerek', data.haccp_delivery || '-'],
-         ['Kiszállítás végzője', data.haccp_delivery_method || '-'],
-         ['Használt olaj szállító', data.haccp_oil_transport || '-'],
-         ['Hulladék elszállítás', data.haccp_waste_transport || '-'],
-         ['Rágcsálóirtás', `${data.haccp_pest_control || '-'} (${data.haccp_pest_control_company || ''})`],
+         ['Kiszállítás történik', data.haccp_delivery_happens || '-'],
+         ['Szállítás módja', data.haccp_delivery_mode || '-'],
+         ['Hőmérséklet-biztosítás', data.haccp_delivery_temp_control || '-'],
+         ['Szállítási idő (átlag)', data.haccp_delivery_time_avg || '-'],
+         ['Használt olaj elszállító', data.haccp_used_oil_company || data.haccp_oil_transport || '-'],
+         ['Használt olaj szerződés', data.haccp_used_oil_contract || '-'],
+         ['Elszállítás gyakorisága', data.haccp_used_oil_frequency || '-'],
+         ['Élelmiszer-hulladék kezelése', data.haccp_food_waste_handling || '-'],
+         ['Zsírfogó', data.haccp_grease_trap || '-'],
+         ['Zsírfogó karbantartás', data.haccp_grease_trap_maintenance || '-'],
+         ['Kártevőirtás (külső szolgáltató)', data.haccp_pest_external || '-'],
+         ['Szolgáltató cég', data.haccp_pest_company || data.haccp_pest_control_company || '-'],
+         ['Szerződés száma', data.haccp_pest_contract || '-'],
+         ['Utolsó irtás dátuma', data.haccp_pest_last_date || '-'],
+         ['Dokumentált ellenőrzési napló', data.haccp_pest_log || '-'],
+         ['Rovarcsapdák száma', (data.haccp_pest_trap_count ?? '-') + ' db'],
 
          // MEGJEGYZÉS
          [{ content: 'Egyéb megjegyzés', colSpan: 2, styles: sectionStyle }],
-         [{ content: data.notes || "Nincs megjegyzés.", colSpan: 2, styles: { fontStyle: 'italic', textColor: 80 } }],
+         [{ content: data.notes || "Nincs megjegyzés.", colSpan: 2, styles: { fontStyle: 'italic' as const, textColor: 80 } }],
       ];
 
       autoTable(doc, {
@@ -277,8 +314,8 @@ export default function AdminHACCPPage() {
             lineColor: [230, 230, 230]
          },
          columnStyles: {
-            0: { cellWidth: 70, fontStyle: 'bold', textColor: [80, 80, 80] },
-            1: { cellWidth: 'auto', fontStyle: 'bold' }
+            0: { cellWidth: 70, fontStyle: 'bold' as const, textColor: [80, 80, 80] },
+            1: { cellWidth: 'auto', fontStyle: 'bold' as const }
          },
          didDrawPage: function (data) {
             doc.setFillColor(...primaryColor);
@@ -563,6 +600,7 @@ export default function AdminHACCPPage() {
                            <EditGroup label="Szolgáltatások (Vesszővel)" name="haccp_services" val={editItem.haccp_services} onChange={handleEditChange} color="emerald" />
                            <EditGroup label="Korábbi dokumentum (Igen/Nem)" name="haccp_prev_doc" val={editItem.haccp_prev_doc} onChange={handleEditChange} color="emerald" />
                            <EditGroup label="Egység típusa" name="haccp_unit_type" val={editItem.haccp_unit_type} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Egység típusa (Egyéb)" name="haccp_unit_type_other" val={editItem.haccp_unit_type_other} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
@@ -578,24 +616,26 @@ export default function AdminHACCPPage() {
                            <EditGroup label="Telefon" name="managerPhone" val={editItem.managerPhone} onChange={handleEditChange} color="emerald" />
                            <EditGroup label="Email" name="managerEmail" val={editItem.managerEmail} onChange={handleEditChange} color="emerald" />
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mt-5">
+                           <EditGroup label="Cégjegyzékszám / EV szám" name="companyRegNumber" val={editItem.companyRegNumber} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Adószám" name="taxNumber" val={editItem.taxNumber} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Élelmiszerlánc-felügyeleti azonosító" name="foodChainId" val={editItem.foodChainId} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Telephely azonosító" name="siteId" val={editItem.siteId} onChange={handleEditChange} color="emerald" />
+                        </div>
                         <div className="mt-5">
                            <EditGroup label="HACCP Felügyelő (ha van)" name="haccp_haccp_supervisor" val={editItem.haccp_haccp_supervisor} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
                      {/* 3. HELYISÉGEK */}
-                     <EditSection title="3. Helyiségek és Biztonság" color="emerald">
+                     <EditSection title="3. Helyiségek (funkció szerint)" color="emerald">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                           <EditGroup label="Helyiségek (Felsorolás)" name="haccp_rooms" val={editItem.haccp_rooms} onChange={handleEditChange} color="emerald" />
-                           <EditGroup label="Biztonsági eszközök" name="haccp_equipment" val={editItem.haccp_equipment} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Helyiségek (funkciók)" name="haccp_rooms_functional" val={editItem.haccp_rooms_functional} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Mosogatási rendszer" name="haccp_washing_system" val={editItem.haccp_washing_system} onChange={handleEditChange} color="emerald" />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                           <EditGroup label="Táblák (Felsorolás)" name="haccp_signs" val={editItem.haccp_signs} onChange={handleEditChange} color="emerald" />
-                           <EditGroup label="Tűzoltó db" name="haccp_extinguishers" val={editItem.haccp_extinguishers} onChange={handleEditChange} type="number" color="emerald" />
-                           <EditGroup label="Gázellátás" name="haccp_gas" val={editItem.haccp_gas} onChange={handleEditChange} color="emerald" />
-                        </div>
-                        <div className="mt-5">
-                           <EditGroup label="Személyzeti rész?" name="haccp_staff_area" val={editItem.haccp_staff_area} onChange={handleEditChange} color="emerald" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                           <EditGroup label="Külön kézmosó az előkészítőben (Igen/Nem)" name="haccp_handwash_prep" val={editItem.haccp_handwash_prep} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Hideg–meleg víz biztosított (Igen/Nem)" name="haccp_handwash_hotcold" val={editItem.haccp_handwash_hotcold} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
@@ -605,13 +645,25 @@ export default function AdminHACCPPage() {
                            <EditGroup label="Forgalmazott termékkörök" name="haccp_product_groups" val={editItem.haccp_product_groups} onChange={handleEditChange} color="emerald" />
                            <EditGroup label="Beszállítók leírása" name="haccp_suppliers" val={editItem.haccp_suppliers} onChange={handleEditChange} color="emerald" />
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                           <EditGroup label="Meleg/hideg étel előállítása" name="haccp_hotcold_prepared" val={editItem.haccp_hotcold_prepared} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Hús és hentesáru művelet" name="haccp_meat_operations" val={editItem.haccp_meat_operations} onChange={handleEditChange} color="emerald" />
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
                            <EditGroup label="Beszállítói igazolás" name="haccp_supplier_verify" val={editItem.haccp_supplier_verify} onChange={handleEditChange} color="emerald" />
                            <EditGroup label="Csomagolóanyag" name="haccp_packaging" val={editItem.haccp_packaging} onChange={handleEditChange} color="emerald" />
-                           <EditGroup label="Allergének elkülönítése" name="haccp_allergen_separation" val={editItem.haccp_allergen_separation} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Csomagolóanyag minősítés (Igen/Nem)" name="haccp_packaging_foodgrade" val={editItem.haccp_packaging_foodgrade} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                           <EditGroup label="Megfelelőségi nyilatkozat (Igen/Nem)" name="haccp_packaging_compliance" val={editItem.haccp_packaging_compliance} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Csomagolóanyag használat" name="haccp_packaging_reuse" val={editItem.haccp_packaging_reuse} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Allergén kezelése" name="haccp_allergen_handling" val={editItem.haccp_allergen_handling} onChange={handleEditChange} color="emerald" />
                         </div>
                         <div className="mb-5">
                            <EditGroup label="Allergén jelölés" name="haccp_allergen_labeling" val={editItem.haccp_allergen_labeling} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="mb-5">
+                           <EditGroup label="Beszállítók listája (JSON)" name="haccp_suppliers_list" val={editItem.haccp_suppliers_list} onChange={handleEditChange} color="emerald" />
                         </div>
 
                         {/* Mátrixok */}
@@ -620,6 +672,8 @@ export default function AdminHACCPPage() {
                            <EditGroup label="Zöldség beszerzés" name="haccp_veg_sourcing" val={editItem.haccp_veg_sourcing} onChange={handleEditChange} color="emerald" />
                            <EditGroup label="Hal beszerzés" name="haccp_fish_sourcing" val={editItem.haccp_fish_sourcing} onChange={handleEditChange} color="emerald" />
                            <EditGroup label="Tojás beszerzés" name="haccp_egg_sourcing" val={editItem.haccp_egg_sourcing} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Tojás felhasználása (nyersen)" name="haccp_egg_used_raw" val={editItem.haccp_egg_used_raw} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Hőkezelés nélküli tojásos termék" name="haccp_egg_noheat_product" val={editItem.haccp_egg_noheat_product} onChange={handleEditChange} color="emerald" />
                         </div>
                      </EditSection>
 
@@ -641,17 +695,33 @@ export default function AdminHACCPPage() {
 
                      {/* 6. HULLADÉK */}
                      <EditSection title="6. Kiszállítás és Hulladék" color="emerald">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-                           <EditGroup label="Kiszállítás partnerek" name="haccp_delivery" val={editItem.haccp_delivery} onChange={handleEditChange} color="emerald" />
-                           <EditGroup label="Kiszállítás módja" name="haccp_delivery_method" val={editItem.haccp_delivery_method} onChange={handleEditChange} color="emerald" />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                           <EditGroup label="Kiszállítás (Igen/Nem)" name="haccp_delivery_happens" val={editItem.haccp_delivery_happens} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Szállítás módja" name="haccp_delivery_mode" val={editItem.haccp_delivery_mode} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Hőmérséklet-biztosítás" name="haccp_delivery_temp_control" val={editItem.haccp_delivery_temp_control} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                           <EditGroup label="Szállítási idő (perc)" name="haccp_delivery_time_avg" val={editItem.haccp_delivery_time_avg} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Használt olaj elszállító" name="haccp_used_oil_company" val={editItem.haccp_used_oil_company} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Használt olaj szerződés (Igen/Nem)" name="haccp_used_oil_contract" val={editItem.haccp_used_oil_contract} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                           <EditGroup label="Elszállítás gyakorisága" name="haccp_used_oil_frequency" val={editItem.haccp_used_oil_frequency} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Élelmiszer-hulladék kezelése" name="haccp_food_waste_handling" val={editItem.haccp_food_waste_handling} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Zsírfogó (Igen/Nem)" name="haccp_grease_trap" val={editItem.haccp_grease_trap} onChange={handleEditChange} color="emerald" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+                           <EditGroup label="Zsírfogó karbantartása" name="haccp_grease_trap_maintenance" val={editItem.haccp_grease_trap_maintenance} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Kártevőirtás (külső szolgáltató)" name="haccp_pest_external" val={editItem.haccp_pest_external} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Kártevőirtó cég" name="haccp_pest_company" val={editItem.haccp_pest_company} onChange={handleEditChange} color="emerald" />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                           <EditGroup label="Olaj elszállítás" name="haccp_oil_transport" val={editItem.haccp_oil_transport} onChange={handleEditChange} color="emerald" />
-                           <EditGroup label="Hulladék elszállítás" name="haccp_waste_transport" val={editItem.haccp_waste_transport} onChange={handleEditChange} color="emerald" />
-                           <EditGroup label="Rágcsálóirtás (Van?)" name="haccp_pest_control" val={editItem.haccp_pest_control} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Szerződés száma" name="haccp_pest_contract" val={editItem.haccp_pest_contract} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Utolsó irtás dátuma" name="haccp_pest_last_date" val={editItem.haccp_pest_last_date} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Dokumentált ellenőrzési napló" name="haccp_pest_log" val={editItem.haccp_pest_log} onChange={handleEditChange} color="emerald" />
                         </div>
                         <div className="mt-5">
-                           <EditGroup label="Rágcsálóirtás Cég" name="haccp_pest_control_company" val={editItem.haccp_pest_control_company} onChange={handleEditChange} color="emerald" />
+                           <EditGroup label="Rovarcsapdák száma" name="haccp_pest_trap_count" val={editItem.haccp_pest_trap_count} onChange={handleEditChange} type="number" color="emerald" />
                         </div>
                      </EditSection>
 

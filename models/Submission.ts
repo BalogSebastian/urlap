@@ -33,6 +33,17 @@ const SubmissionSchema = new Schema({
   haccp_allergen_labeling: { type: String }, // Jelölés módja
   haccp_product_groups: { type: String }, // 1.1 - 1.12 kategóriák
 
+  // Egység azonosítók (HACCP kiegészítés)
+  companyRegNumber: { type: String }, // Cégjegyzékszám / EV nyilvántartási szám
+  foodChainId: { type: String }, // Élelmiszerlánc-felügyeleti azonosító
+  siteId: { type: String }, // Telephely azonosító
+
+  // Helyiségek (funkció szerint) és higiénia
+  haccp_rooms_functional: { type: String }, // Áruátvétel, raktár, hűtő, stb.
+  haccp_handwash_prep: { type: String }, // Külön kézmosó az előkészítőben (igen/nem)
+  haccp_handwash_hotcold: { type: String }, // Hideg–meleg víz biztosított (igen/nem)
+  haccp_washing_system: { type: String }, // Egyfázisú, Kétfázisú, Hárommedencés, Ipari mosogatógép
+
   // Működés
   haccp_pest_control: { type: String }, // Rágcsálóirtás
   haccp_staff_area: { type: String }, // Személyzeti rész
@@ -52,6 +63,37 @@ const SubmissionSchema = new Schema({
   haccp_veg_sourcing: { type: String },
   haccp_fish_sourcing: { type: String },
   haccp_egg_sourcing: { type: String },
+
+  // Termék és alapanyag részletek
+  haccp_hotcold_prepared: { type: String }, // Helyben készül / Félkész
+  haccp_meat_operations: { type: String }, // Forgalmaz / Feldolgoz / Mindkettő
+  haccp_allergen_handling: { type: String }, // Tárolás elkülönítve, jelölt edény, külön eszköz
+  haccp_suppliers_list: { type: String }, // JSON lista: Cégnév|Cím|Adószám|Termék|Rendszeres/Eseti|Szerződés
+  haccp_packaging_foodgrade: { type: String }, // Élelmiszerrel érintkezhető minősítés (igen/nem)
+  haccp_packaging_compliance: { type: String }, // Megfelelőségi nyilatkozat (igen/nem)
+  haccp_packaging_reuse: { type: String }, // Egyszer használatos / Újrahasználatos
+
+  // Kiszállítás részletek
+  haccp_delivery_happens: { type: String }, // Igen/Nem
+  haccp_delivery_mode: { type: String }, // Saját jármű, Külső platform, Alvállalkozó
+  haccp_delivery_temp_control: { type: String }, // Hőtartó doboz, aktív, hűtőtáska stb.
+  haccp_delivery_time_avg: { type: String }, // Percek
+
+  // Hulladékkezelés kiegészítések
+  haccp_used_oil_company: { type: String }, // Cégnév
+  haccp_used_oil_contract: { type: String }, // Szerződés (igen/nem)
+  haccp_used_oil_frequency: { type: String }, // Szállítás gyakorisága
+  haccp_food_waste_handling: { type: String }, // Zárt tároló, napi elszállítás stb.
+  haccp_grease_trap: { type: String }, // Zsírfogó (igen/nem)
+  haccp_grease_trap_maintenance: { type: String }, // Karbantartás gyakorisága
+
+  // Kártevőirtás részletek
+  haccp_pest_external: { type: String }, // Külső szolgáltató (igen/nem)
+  haccp_pest_company: { type: String }, // Cégnév
+  haccp_pest_contract: { type: String }, // Szerződés száma
+  haccp_pest_last_date: { type: String }, // Utolsó irtás dátuma
+  haccp_pest_log: { type: String }, // Dokumentált ellenőrzési napló (igen/nem)
+  haccp_pest_trap_count: { type: Number }, // Rovarcsapdák száma
 
   // Egyéb
   haccp_commercial_groups: { type: String }, // Kereskedelmi csoportok

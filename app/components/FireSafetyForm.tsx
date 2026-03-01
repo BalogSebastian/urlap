@@ -22,6 +22,9 @@ export default function FireSafetyForm({
     const [generatedLink, setGeneratedLink] = useState<string | null>(null);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [suppliers, setSuppliers] = useState<Array<{ company: string; address: string; tax: string; product: string; regularity: string; contract: string }>>([
+        { company: "", address: "", tax: "", product: "", regularity: "Rendszeres", contract: "Igen" }
+    ]);
 
     // Determine current theme based on active tab
     // Fire -> Cyan (Blue)
@@ -309,14 +312,19 @@ export default function FireSafetyForm({
                             <div className="mt-6 pt-6 border-t border-slate-100">
                                 <Label theme={currentTheme}>Milyen vendéglátó egység?</Label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                                    {/* Kézi lista a PDF alapján */}
-                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Étterem" label="Étterem" />
-                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Büfé" label="Büfé" />
-                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Cukrászda" label="Cukrászda" />
-                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Pékség" label="Pékség" />
-                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Kocsma / Bár" label="Kocsma / Bár" />
-                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Mozgóbolt" label="Mozgóbolt / Food Truck" />
-                                    <RadioSimple theme={currentTheme} name="haccp_unit_type" value="Egyéb" label="Egyéb" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Melegkonyhás étterem" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Hidegkonyhás egység" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Büfé (helyben sütéssel/főzéssel)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Büfé (kizárólag késztermék forgalmazás)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Cukrászda (előállítás)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Cukrászda (csak értékesítés)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Pékség (teljes technológia)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Pékség (mirelit sütés)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Italforgalmazó egység" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_unit_type" label="Mozgó vendéglátás" />
+                                </div>
+                                <div className="mt-3">
+                                    <input type="text" name="haccp_unit_type_other" className="w-full border rounded-xl p-3" placeholder="Egyéb: írja ide" />
                                 </div>
                             </div>
                         </Section>
@@ -328,6 +336,10 @@ export default function FireSafetyForm({
                                 <InputGroup theme={currentTheme} label="Egység címe" name="siteAddress" placeholder="Pontos cím" required />
                                 <InputGroup theme={currentTheme} label="Telefon" name="managerPhone" placeholder="+36..." fullWidth />
                                 <InputGroup theme={currentTheme} label="Email" name="managerEmail" placeholder="info@..." type="email" fullWidth required />
+                                <InputGroup theme={currentTheme} label="Cégjegyzékszám / EV nyilvántartási szám" name="companyRegNumber" placeholder="01-09-123456 / 12345678" fullWidth />
+                                <InputGroup theme={currentTheme} label="Adószám" name="taxNumber" placeholder="xxxxxxxx-x-xx" fullWidth />
+                                <InputGroup theme={currentTheme} label="Élelmiszerlánc-felügyeleti azonosító" name="foodChainId" placeholder="pl. NÉBIH azonosító" fullWidth />
+                                <InputGroup theme={currentTheme} label="Telephely azonosító" name="siteId" placeholder="Telephely azonosító" fullWidth />
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-slate-100">
@@ -352,55 +364,51 @@ export default function FireSafetyForm({
                         </Section>
 
                         {/* 3. Helyiségek és Berendezések */}
-                        <Section theme={currentTheme} number="03" title="Helyiségek és Berendezések" description="Az ingatlan elosztása és felszereltsége.">
+                        <Section theme={currentTheme} number="03" title="Helyiségek (funkció szerint)" description="Funkciók és higiéniai pontok.">
                             <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 mb-6">
-                                <Label theme={currentTheme}>Helyiségek (Jelölje be ami van)</Label>
+                                <Label theme={currentTheme}>Helyiségek</Label>
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Iroda" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Vendégtér" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Műhely" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Konyha" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Raktár" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_rooms" label="Szociális helyiség" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_staff_area" label="Személyzeti rész van" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Áruátvételi terület" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Szárazáru raktár" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Hűtő" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Fagyasztó" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Zöldség előkészítő" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Hús előkészítő" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Tojás előkészítő" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Hidegkonyha" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Melegkonyha" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Tálaló" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Mosogató (fekete)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Mosogató (fehér)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Hulladéktároló" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Dolgozói öltöző" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="WC (dolgozói)" />
+                                    <CheckboxCard theme={currentTheme} name="haccp_rooms_functional" label="Vendégmosdó" />
                                 </div>
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                                 <div>
-                                    <Label theme={currentTheme}>Biztonsági eszközök</Label>
+                                    <Label theme={currentTheme}>Külön kézmosó az előkészítőben?</Label>
+                                    <div className="flex gap-4 mt-2">
+                                        <RadioSimple theme={currentTheme} name="haccp_handwash_prep" value="Igen" label="Igen" />
+                                        <RadioSimple theme={currentTheme} name="haccp_handwash_prep" value="Nem" label="Nem" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label theme={currentTheme}>Hideg–meleg víz biztosított?</Label>
+                                    <div className="flex gap-4 mt-2">
+                                        <RadioSimple theme={currentTheme} name="haccp_handwash_hotcold" value="Igen" label="Igen" />
+                                        <RadioSimple theme={currentTheme} name="haccp_handwash_hotcold" value="Nem" label="Nem" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <Label theme={currentTheme}>Mosogatási rendszer</Label>
                                     <div className="flex flex-col gap-2 mt-2">
-                                        <CheckboxCard theme={currentTheme} name="haccp_equipment" label="Sprinkler" />
-                                        <CheckboxCard theme={currentTheme} name="haccp_equipment" label="Füstérzékelő" />
-                                        <CheckboxCard theme={currentTheme} name="haccp_first_aid" label="Elsősegély doboz" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_washing_system" label="Egyfázisú" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_washing_system" label="Kétfázisú" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_washing_system" label="Hárommedencés" />
+                                        <CheckboxCard theme={currentTheme} name="haccp_washing_system" label="Ipari mosogatógép" />
                                     </div>
-                                </div>
-                                <div>
-                                    <Label theme={currentTheme}>Tűzoltó készülékek</Label>
-                                    <input type="number" name="haccp_extinguishers" className="w-full border rounded-xl p-3 mt-2" placeholder="Darabszám" />
-
-                                    <div className="mt-4">
-                                        <Label theme={currentTheme}>Gázellátás</Label>
-                                        <div className="flex flex-col gap-2 mt-2">
-                                            <RadioSimple theme={currentTheme} name="haccp_gas" value="Nincs" label="Nincs használatban" />
-                                            <RadioSimple theme={currentTheme} name="haccp_gas" value="Vezetékes" label="Vezetékes gáz" />
-                                            <RadioSimple theme={currentTheme} name="haccp_gas" value="PB" label="PB gáz" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-4 border-t border-slate-100">
-                                <Label theme={currentTheme}>Milyen táblák vannak kitéve?</Label>
-                                <div className="grid grid-cols-2 gap-3 mt-3">
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Elsősegély pont" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Tűzoltó készülék helye" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Gáz főelzáró" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Segélyhívó számok" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Dohányozni Tilos" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Menekülési útvonal" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="Polc terhelhetőség" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_signs" label="HACCP folyamatábra" />
                                 </div>
                             </div>
                         </Section>
@@ -440,15 +448,98 @@ export default function FireSafetyForm({
                                         <input type="text" name="haccp_packaging" className="w-full border rounded-xl p-3 mt-1" placeholder="Honnan?" />
                                     </div>
                                 </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <Label theme={currentTheme}>Élelmiszerrel érintkezhető minősítés</Label>
+                                        <div className="flex gap-4">
+                                            <RadioSimple theme={currentTheme} name="haccp_packaging_foodgrade" value="Igen" label="Igen" />
+                                            <RadioSimple theme={currentTheme} name="haccp_packaging_foodgrade" value="Nem" label="Nem" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label theme={currentTheme}>Megfelelőségi nyilatkozat</Label>
+                                        <div className="flex gap-4">
+                                            <RadioSimple theme={currentTheme} name="haccp_packaging_compliance" value="Igen" label="Igen" />
+                                            <RadioSimple theme={currentTheme} name="haccp_packaging_compliance" value="Nem" label="Nem" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label theme={currentTheme}>Csomagolóanyag használat</Label>
+                                        <div className="flex gap-4">
+                                            <RadioSimple theme={currentTheme} name="haccp_packaging_reuse" value="Egyszer használatos" label="Egyszer használatos" />
+                                            <RadioSimple theme={currentTheme} name="haccp_packaging_reuse" value="Újrahasználatos" label="Újrahasználatos" />
+                                        </div>
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <Label theme={currentTheme}>Allergének külön vannak?</Label>
-                                        <RadioSimple theme={currentTheme} name="haccp_allergen_separation" value="Igen" label="Igen" />
-                                        <RadioSimple theme={currentTheme} name="haccp_allergen_separation" value="Nem" label="Nem / Egy térben" />
+                                        <Label theme={currentTheme}>Allergén kezelése</Label>
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            <CheckboxCard theme={currentTheme} name="haccp_allergen_handling" label="Fizikailag elkülönítve tárolva" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_allergen_handling" label="Jelölt tárolóedény használata" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_allergen_handling" label="Külön eszközhasználat" />
+                                        </div>
                                     </div>
                                     <div>
                                         <Label theme={currentTheme}>Allergén jelölés módja</Label>
                                         <input type="text" name="haccp_allergen_labeling" className="w-full border rounded-xl p-3 mt-1" placeholder="pl. Étlapon, Táblán, Címkén" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label theme={currentTheme}>Meleg/hideg étel előállítása</Label>
+                                        <div className="flex gap-4">
+                                            <RadioSimple theme={currentTheme} name="haccp_hotcold_prepared" value="Helyben készül" label="Helyben készül" />
+                                            <RadioSimple theme={currentTheme} name="haccp_hotcold_prepared" value="Félkész termék" label="Félkész termék" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label theme={currentTheme}>Hús és hentesáru művelet</Label>
+                                        <div className="flex gap-4">
+                                            <RadioSimple theme={currentTheme} name="haccp_meat_operations" value="Forgalmazás" label="Forgalmazás" />
+                                            <RadioSimple theme={currentTheme} name="haccp_meat_operations" value="Feldolgozás" label="Feldolgozás" />
+                                            <RadioSimple theme={currentTheme} name="haccp_meat_operations" value="Mindkettő" label="Mindkettő" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="pt-4 border-t border-emerald-100">
+                                    <Label theme={currentTheme}>Beszállítók listája</Label>
+                                    <div className="space-y-3">
+                                        {suppliers.map((s, idx) => (
+                                            <div key={idx} className="grid grid-cols-1 md:grid-cols-6 gap-2">
+                                                <input className="border rounded-xl p-2 text-sm" placeholder="Cégnév" value={s.company} onChange={e => {
+                                                    const n = [...suppliers]; n[idx] = { ...n[idx], company: e.target.value }; setSuppliers(n);
+                                                }} />
+                                                <input className="border rounded-xl p-2 text-sm" placeholder="Cím" value={s.address} onChange={e => {
+                                                    const n = [...suppliers]; n[idx] = { ...n[idx], address: e.target.value }; setSuppliers(n);
+                                                }} />
+                                                <input className="border rounded-xl p-2 text-sm" placeholder="Adószám" value={s.tax} onChange={e => {
+                                                    const n = [...suppliers]; n[idx] = { ...n[idx], tax: e.target.value }; setSuppliers(n);
+                                                }} />
+                                                <input className="border rounded-xl p-2 text-sm" placeholder="Termék" value={s.product} onChange={e => {
+                                                    const n = [...suppliers]; n[idx] = { ...n[idx], product: e.target.value }; setSuppliers(n);
+                                                }} />
+                                                <select className="border rounded-xl p-2 text-sm" value={s.regularity} onChange={e => {
+                                                    const n = [...suppliers]; n[idx] = { ...n[idx], regularity: e.target.value }; setSuppliers(n);
+                                                }}>
+                                                    <option>Rendszeres</option>
+                                                    <option>Eseti</option>
+                                                </select>
+                                                <select className="border rounded-xl p-2 text-sm" value={s.contract} onChange={e => {
+                                                    const n = [...suppliers]; n[idx] = { ...n[idx], contract: e.target.value }; setSuppliers(n);
+                                                }}>
+                                                    <option>Igen</option>
+                                                    <option>Nem</option>
+                                                </select>
+                                            </div>
+                                        ))}
+                                        <div className="flex gap-2">
+                                            <button type="button" onClick={() => setSuppliers(prev => [...prev, { company: "", address: "", tax: "", product: "", regularity: "Rendszeres", contract: "Igen" }])} className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold">+ Sor hozzáadása</button>
+                                            {suppliers.length > 1 && (
+                                                <button type="button" onClick={() => setSuppliers(prev => prev.slice(0, -1))} className="px-4 py-2 bg-slate-200 rounded-xl text-sm font-bold">Sor törlése</button>
+                                            )}
+                                        </div>
+                                        <input type="hidden" name="haccp_suppliers_list" value={JSON.stringify(suppliers)} />
                                     </div>
                                 </div>
                             </div>
@@ -461,38 +552,59 @@ export default function FireSafetyForm({
                                     {/* Hús */}
                                     <div className="bg-white p-4 rounded-xl border border-gray-200">
                                         <Label theme={currentTheme}>Hús beszerzése</Label>
-                                        <div className="grid grid-cols-3 gap-2 mt-2">
-                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Feldolgozva" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Feldolgozatlan" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Mirelit" />
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Friss hűtött nyers hús" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Fagyasztott nyers hús" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Darált hús" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Vákuumcsomagolt hús" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Előhőkezelt hús" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Füstölt / pácolt termék" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_meat_sourcing" label="Kész húskészítmény" />
                                         </div>
                                     </div>
                                     {/* Zöldség */}
                                     <div className="bg-white p-4 rounded-xl border border-gray-200">
                                         <Label theme={currentTheme}>Zöldség/Gyümölcs beszerzése</Label>
-                                        <div className="grid grid-cols-3 gap-2 mt-2">
-                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Feldolgozva" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Feldolgozatlan" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Mirelit" />
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Friss, feldolgozatlan" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Mosott / tisztított" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Előaprított / előkészített" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Vákuumcsomagolt" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_veg_sourcing" label="Fagyasztott" />
                                         </div>
                                     </div>
                                     {/* Hal */}
                                     <div className="bg-white p-4 rounded-xl border border-gray-200">
                                         <Label theme={currentTheme}>Hal beszerzése</Label>
-                                        <div className="grid grid-cols-3 gap-2 mt-2">
-                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Feldolgozva" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Feldolgozatlan" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Mirelit" />
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Friss hűtött hal" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Fagyasztott hal" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Vákuumcsomagolt hal" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Füstölt hal" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_fish_sourcing" label="Nyersen fogyasztásra szánt hal" />
                                         </div>
                                     </div>
                                     {/* Tojás */}
                                     <div className="bg-white p-4 rounded-xl border border-gray-200">
                                         <Label theme={currentTheme}>Tojás beszerzése</Label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
-                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Szimpla" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Fertőtlenített" />
-                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Tojáslé" />
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Héjas tojás (A osztály)" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Mosott / fertőtlenített tojás" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Pasztőrözött tojáslé" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Fagyasztott tojáslé" />
                                             <CheckboxCard theme={currentTheme} name="haccp_egg_sourcing" label="Tojáspor" />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                                            <div className="flex gap-4 items-center">
+                                                <span className="text-sm font-semibold text-slate-600">Használják-e nyersen?</span>
+                                                <RadioSimple theme={currentTheme} name="haccp_egg_used_raw" value="Igen" label="Igen" />
+                                                <RadioSimple theme={currentTheme} name="haccp_egg_used_raw" value="Nem" label="Nem" />
+                                            </div>
+                                            <div className="flex gap-4 items-center">
+                                                <span className="text-sm font-semibold text-slate-600">Készül-e hőkezelés nélküli termék?</span>
+                                                <RadioSimple theme={currentTheme} name="haccp_egg_noheat_product" value="Igen" label="Igen" />
+                                                <RadioSimple theme={currentTheme} name="haccp_egg_noheat_product" value="Nem" label="Nem" />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -572,17 +684,34 @@ export default function FireSafetyForm({
                         {/* 6. Kiszállítás és Hulladék */}
                         <Section theme={currentTheme} number="06" title="Kiszállítás és Hulladék" description="Logisztika és környezetvédelem.">
                             <div className="mb-6">
-                                <Label theme={currentTheme}>Kiszállítás módja</Label>
-                                <div className="grid grid-cols-2 gap-3 mt-2">
-                                    <CheckboxCard theme={currentTheme} name="haccp_delivery" label="Wolt / Foodora / Bolt" />
-                                    <CheckboxCard theme={currentTheme} name="haccp_delivery" label="Saját futár" />
+                                <Label theme={currentTheme}>Kiszállítás történik?</Label>
+                                <div className="flex gap-4 mt-2">
+                                    <RadioSimple theme={currentTheme} name="haccp_delivery_happens" value="Nem" label="Nem" />
+                                    <RadioSimple theme={currentTheme} name="haccp_delivery_happens" value="Igen" label="Igen" />
                                 </div>
-                                <div className="mt-3">
-                                    <Label theme={currentTheme}>Ha van kiszállítás, ki végzi?</Label>
-                                    <div className="flex gap-4">
-                                        <RadioSimple theme={currentTheme} name="haccp_delivery_method" value="Saját" label="Saját alkalmazott/autó" />
-                                        <RadioSimple theme={currentTheme} name="haccp_delivery_method" value="Alvállalkozó" label="Alvállalkozó" />
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <Label theme={currentTheme}>Szállítás módja</Label>
+                                        <div className="flex flex-col gap-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_mode" label="Saját jármű" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_mode" label="Külső platform (Wolt / Foodora / Bolt)" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_mode" label="Szerződött alvállalkozó" />
+                                        </div>
                                     </div>
+                                    <div>
+                                        <Label theme={currentTheme}>Hőmérséklet-biztosítás</Label>
+                                        <div className="flex flex-col gap-2">
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_temp_control" label="Hőtartó doboz" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_temp_control" label="Aktív melegen tartás" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_temp_control" label="Hűtőtáska" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_temp_control" label="Hűtött jármű" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_delivery_temp_control" label="Nincs hőmérséklet-kontroll" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <Label theme={currentTheme}>Szállítási idő (átlag)</Label>
+                                    <input type="text" name="haccp_delivery_time_avg" className="w-full border rounded-xl p-3 mt-1" placeholder="perc" />
                                 </div>
                             </div>
 
@@ -590,23 +719,60 @@ export default function FireSafetyForm({
                                 <Label theme={currentTheme}>Hulladékkezelés</Label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-3">
                                     <div>
-                                        <Label theme={currentTheme}>Használt olaj elszállító</Label>
-                                        <div className="flex flex-col gap-2 mt-1">
-                                            <RadioSimple theme={currentTheme} name="haccp_oil_transport" value="Biofilter" label="Biofilter" />
-                                            <RadioSimple theme={currentTheme} name="haccp_oil_transport" value="Gastrooil" label="Gastrooil" />
-                                            <RadioSimple theme={currentTheme} name="haccp_oil_transport" value="Nincs/Folyamatban" label="Nincs / Folyamatban" />
+                                        <Label theme={currentTheme}>Használt sütőolaj elszállító</Label>
+                                        <input type="text" name="haccp_used_oil_company" className="w-full border rounded-xl p-3 mt-1" placeholder="Cégnév" />
+                                        <div className="flex gap-4 mt-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-semibold text-slate-600">Szerződés</span>
+                                                <RadioSimple theme={currentTheme} name="haccp_used_oil_contract" value="Igen" label="Igen" />
+                                                <RadioSimple theme={currentTheme} name="haccp_used_oil_contract" value="Nem" label="Nem" />
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-semibold text-slate-600">Gyakoriság</span>
+                                                <input type="text" name="haccp_used_oil_frequency" className="border rounded-xl p-2 text-sm w-40" placeholder="pl. havonta" />
+                                            </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <Label theme={currentTheme}>Egyéb hulladék szállító</Label>
-                                        <input type="text" name="haccp_waste_transport" className="w-full border rounded-xl p-3 mt-1" placeholder="Cég neve..." />
+                                        <Label theme={currentTheme}>Élelmiszer-hulladék kezelése</Label>
+                                        <div className="flex flex-col gap-2 mt-1">
+                                            <CheckboxCard theme={currentTheme} name="haccp_food_waste_handling" label="Zárt, fedeles tároló" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_food_waste_handling" label="Napi elszállítás" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_food_waste_handling" label="Külső hulladéktároló" />
+                                            <CheckboxCard theme={currentTheme} name="haccp_food_waste_handling" label="Hűtött hulladéktárolás" />
+                                        </div>
+                                        <div className="mt-4">
+                                            <Label theme={currentTheme}>Zsírfogó van?</Label>
+                                            <div className="flex gap-4">
+                                                <RadioSimple theme={currentTheme} name="haccp_grease_trap" value="Igen" label="Igen" />
+                                                <RadioSimple theme={currentTheme} name="haccp_grease_trap" value="Nem" label="Nem" />
+                                            </div>
+                                            <div className="mt-2">
+                                                <input type="text" name="haccp_grease_trap_maintenance" className="w-full border rounded-xl p-3 mt-1" placeholder="Karbantartás gyakorisága" />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="mt-4 pt-4 border-t border-gray-200">
-                                    <Label theme={currentTheme}>Rágcsálóirtás van?</Label>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <RadioSimple theme={currentTheme} name="haccp_pest_control" value="Igen" label="Igen" />
-                                        <input type="text" name="haccp_pest_control_company" className="flex-1 border-b border-gray-300 py-1 outline-none text-sm bg-transparent" placeholder="Ki végzi?" />
+                                    <Label theme={currentTheme}>Rágcsálóirtás</Label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-sm font-semibold text-slate-600">Külső szolgáltató?</span>
+                                            <RadioSimple theme={currentTheme} name="haccp_pest_external" value="Igen" label="Igen" />
+                                            <RadioSimple theme={currentTheme} name="haccp_pest_external" value="Nem" label="Nem" />
+                                        </div>
+                                        <input type="text" name="haccp_pest_company" className="w-full border rounded-xl p-3" placeholder="Cégnév" />
+                                        <input type="text" name="haccp_pest_contract" className="w-full border rounded-xl p-3" placeholder="Szerződés száma" />
+                                        <input type="text" name="haccp_pest_last_date" className="w-full border rounded-xl p-3" placeholder="Utolsó irtás dátuma" />
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-sm font-semibold text-slate-600">Dokumentált ellenőrzési napló</span>
+                                            <RadioSimple theme={currentTheme} name="haccp_pest_log" value="Igen" label="Igen" />
+                                            <RadioSimple theme={currentTheme} name="haccp_pest_log" value="Nem" label="Nem" />
+                                        </div>
+                                        <div>
+                                            <Label theme={currentTheme}>Rovarcsapdák száma</Label>
+                                            <input type="number" name="haccp_pest_trap_count" className="w-full border rounded-xl p-3" placeholder="0" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
