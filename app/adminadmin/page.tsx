@@ -548,6 +548,24 @@ export default function AdminPage() {
                                                     </span>
                                                 )}
                                             </div>
+                                            {Array.isArray((sub as any).uploadedFiles) && (sub as any).uploadedFiles.length > 0 && (
+                                                <div className="mt-2">
+                                                    <div className="text-[10px] font-bold uppercase text-slate-400">Csatolmányok</div>
+                                                    <div className="flex flex-wrap gap-2 mt-1">
+                                                        {(sub as any).uploadedFiles.map((f: any, idx: number) => (
+                                                            <a
+                                                                key={`${f.fileName}-${idx}`}
+                                                                href={`/api/submissions/${sub._id}/files/${idx}`}
+                                                                target="_blank"
+                                                                className="text-[11px] font-bold bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md border border-indigo-100 hover:bg-indigo-100 transition-colors"
+                                                                title="Megnyitás"
+                                                            >
+                                                                {f.fileName}
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
 

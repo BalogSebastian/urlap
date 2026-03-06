@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 
 type Theme = 'cyan' | 'orange' | 'gray' | 'purple';
 type ActiveTab = 'fire' | 'vbf' | 'haccp' | 'generate';
@@ -1257,6 +1258,14 @@ export default function FireSafetyForm({
                                     >
                                         🛡️ HACCP Adatlap
                                     </button>
+                                </div>
+                                <div className="mt-6">
+                                    <Link
+                                        href="/veszely"
+                                        className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 rounded-xl text-sm font-extrabold bg-yellow-400 text-slate-900 hover:bg-yellow-500 transition-all shadow-sm"
+                                    >
+                                        ⚠️ Veszély: csak fájlfeltöltés meghívó
+                                    </Link>
                                 </div>
                             </div>
 

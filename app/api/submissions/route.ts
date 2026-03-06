@@ -166,11 +166,35 @@ export async function POST(req: Request) {
           attachments,
         });
       }
+
+      if (body.submissionKind === "files_only" && typeof managerEmail === "string" && managerEmail.includes("@")) {
+        const fileNames =
+          Array.isArray(body.uploadedFiles) && body.uploadedFiles.length > 0
+            ? body.uploadedFiles.map((f) => f.fileName).join(", ")
+            : "-";
+
+        await transporter.sendMail({
+          from: fromAddress,
+          to: managerEmail,
+          subject: "Beküldés visszaigazolása",
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #0f172a; font-size: 14px; line-height: 1.6;">
+              <p style="margin-bottom: 12px;">Köszönjük, a beküldését megkaptuk.</p>
+              <p style="margin-bottom: 12px;">
+                <strong>Cég:</strong> ${companyName}<br />
+                <strong>Típus:</strong> ${formTypeLabel}<br />
+                <strong>Fájlok:</strong> ${fileNames}
+              </p>
+              <p style="font-size: 12px; color: #6b7280;">Ez az üzenet automatikusan generálódott.</p>
+            </div>
+          `,
+        });
+      }
     } catch (notifyError) {
       console.error("Értesítő email hiba:", notifyError);
     }
 
-    return NextResponse.json({ success: true, data: submission }, { status: 201 });
+    return NextResponse.json({ success: true, id: submission._id }, { status: 201 });
   } catch (error) {
     console.error("Mentési hiba:", error);
     return NextResponse.json({ error: "Hiba a mentés során" }, { status: 400 });
