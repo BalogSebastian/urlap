@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
+import { FiX, FiUploadCloud } from "react-icons/fi";
 import Link from "next/link";
 
 type Theme = 'cyan' | 'orange' | 'gray' | 'purple';
@@ -26,6 +27,23 @@ export default function FireSafetyForm({
     const [suppliers, setSuppliers] = useState<Array<{ company: string; address: string; tax: string; product: string; regularity: string; contract: string }>>([
         { company: "", address: "", tax: "", product: "", regularity: "Rendszeres", contract: "Igen" }
     ]);
+    const [fileMap, setFileMap] = useState<Record<string, File[]>>({});
+
+    const handleFileChange = useCallback((name: string, files: FileList | null) => {
+        if (!files) return;
+        const newFiles = Array.from(files);
+        setFileMap(prev => ({
+            ...prev,
+            [name]: [...(prev[name] || []), ...newFiles]
+        }));
+    }, []);
+
+    const removeFile = useCallback((name: string, index: number) => {
+        setFileMap(prev => ({
+            ...prev,
+            [name]: (prev[name] || []).filter((_, i) => i !== index)
+        }));
+    }, []);
 
     // Determine current theme based on active tab
     // Fire -> Cyan (Blue)
@@ -115,11 +133,28 @@ export default function FireSafetyForm({
         const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
         formData.append("formType", activeTab);
-        for (const [key, value] of Array.from(formData.entries())) {
-            if (value instanceof File && value.size > 0 && key !== "files") {
-                formData.append("files", value);
+
+        // Hozzáadjuk a fileMap-ben tárolt fájlokat a FormData-hoz
+        Object.entries(fileMap).forEach(([key, files]) => {
+            files.forEach(file => {
+                formData.append("files", file); // Minden fájl bekerül a közös "files" tömbbe
+                // Opcionális: Ha szeretnéd megőrizni, hogy melyik fájl melyik mezőhöz tartozik,
+                // akkor a fájl nevében vagy külön mezőben jelezheted, de a jelenlegi backend
+                // logika szerint minden fájl ömlesztve megy a "files" tömbbe.
+                // A backend a fájlneveket elmenti a megfelelő kulcs alá is (ha egyezik a name attribútummal),
+                // de mivel itt a fileMap kulcsai nem feltétlenül egyeznek meg a backend várt mezőneveivel,
+                // és a backend jelenleg "files" tömböt vár, így ez a megoldás a legbiztosabb a fájlok átvitelére.
+            });
+            // Ha a backend specifikus mezőneveket vár (pl. haccp_floor_plan), akkor:
+            if (files.length > 0) {
+                 // Csak a fájlneveket küldjük el szövegesen az adott mezőhöz, hogy az admin lássa, mit hova töltöttek
+                 formData.set(key, files.map(f => f.name).join(", ")); 
             }
-        }
+        });
+
+        // A formban lévő "hagyományos" file inputokat töröljük, mert azokat már a fileMap kezeli (vagy ha nem, akkor duplikálódnának)
+        // De mivel a MultiFileUpload komponens nem input[type=file]-t használ közvetlenül a formban (hanem rejtett inputot vagy csak state-et),
+        // ezért ez nem gond. Ha van mégis input[type=file], azt a FormData automatikusan behúzza, de mi most lecseréljük őket.
 
         try {
             const res = await fetch("/api/submissions", {
@@ -141,6 +176,60 @@ export default function FireSafetyForm({
         } finally {
             setLoading(false);
         }
+    };
+
+    // --- UI KOMPONENSEK ---
+
+    const MultiFileUpload = ({ name, label, multiple = false }: { name: string, label: string, multiple?: boolean }) => {
+        const files = fileMap[name] || [];
+
+        return (
+            <div className="w-full">
+                <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{label}</label>
+                <div className="relative">
+                    <input
+                        type="file"
+                        id={`file-${name}`}
+                        multiple={multiple}
+                        className="hidden"
+                        onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                                handleFileChange(name, e.target.files);
+                                e.target.value = ""; // Reset input value to allow selecting same file again
+                            }
+                        }}
+                    />
+                    <label
+                        htmlFor={`file-${name}`}
+                        className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-slate-300 rounded-xl cursor-pointer hover:border-indigo-500 hover:bg-indigo-50 transition-all group"
+                    >
+                        <div className="flex flex-col items-center gap-1 text-slate-500 group-hover:text-indigo-600">
+                            <FiUploadCloud size={24} />
+                            <span className="text-sm font-semibold">Kattints a feltöltéshez</span>
+                        </div>
+                    </label>
+                </div>
+
+                {/* File list */}
+                {files.length > 0 && (
+                    <ul className="mt-3 space-y-2">
+                        {files.map((file, index) => (
+                            <li key={`${file.name}-${index}`} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg border border-slate-200 text-sm">
+                                <span className="truncate max-w-[80%] font-medium text-slate-700">{file.name}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => removeFile(name, index)}
+                                    className="p-1 text-rose-500 hover:bg-rose-100 rounded-full transition-colors"
+                                    title="Törlés"
+                                >
+                                    <FiX size={16} />
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -782,14 +871,8 @@ export default function FireSafetyForm({
                                 </ul>
 
                                 <div className="space-y-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-emerald-700 uppercase mb-1 block">Alaprajz Feltöltése</label>
-                                        <input type="file" name="haccp_floor_plan" className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition-all cursor-pointer" />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-emerald-700 uppercase mb-1 block">Étlap Feltöltése</label>
-                                        <input type="file" name="haccp_menu_photo" className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200 transition-all cursor-pointer" />
-                                    </div>
+                                    <MultiFileUpload name="haccp_floor_plan" label="Alaprajz Feltöltése" multiple />
+                                    <MultiFileUpload name="haccp_menu_photo" label="Étlap Feltöltése" multiple />
                                 </div>
                             </div>
                         </Section>
@@ -1197,9 +1280,9 @@ export default function FireSafetyForm({
                                     <li><strong>Áttekintő kép</strong> a telephelyről</li>
                                 </ul>
 
-                                <div className="space-y-2">
-                                    <input type="file" name="files" multiple className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all cursor-pointer shadow-sm" />
-                                    <p className="text-xs text-blue-500 mt-3 font-medium">* A fotók feltöltése opcionális itt, emailben is pótolható.</p>
+                                <div className="space-y-4">
+                                    <MultiFileUpload name="files" label="Fotók feltöltése" multiple />
+                                    <p className="text-xs text-blue-500 font-medium">* A fotók feltöltése opcionális itt, emailben is pótolható.</p>
                                 </div>
                             </div>
                         </Section>
