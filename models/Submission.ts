@@ -249,6 +249,13 @@ const SubmissionSchema = new Schema({
 
   // Rendszer adat
   submittedAt: { type: Date, default: Date.now },
+
+  // FÁJL FELTÖLTÉS (ÚJ)
+  uploadedFiles: [{
+    fileName: { type: String, required: true },
+    fileType: { type: String, required: true },
+    fileContent: { type: Buffer, required: true },
+  }],
 }, { timestamps: true });
 
 // Ha már létezik a model, ne definiálja újra (Next.js hot reload miatt fontos)

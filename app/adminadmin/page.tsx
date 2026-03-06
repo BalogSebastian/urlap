@@ -61,6 +61,7 @@ export default function AdminPage() {
     // New State for Custom Email Logic
     const [emailMode, setEmailMode] = useState<"preset" | "custom">("preset");
     const [salutationName, setSalutationName] = useState("");
+    const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
 
 
     // --- ADATOK BETÖLTÉSE (CSAK TŰZVÉDELEM) ---
@@ -179,6 +180,12 @@ export default function AdminPage() {
 
             // NEW: Salutation
             formData.append("salutationName", salutationName);
+
+            if (selectedFiles) {
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    formData.append("files", selectedFiles[i]);
+                }
+            }
 
             const res = await fetch("/api/send-email", { method: "POST", body: formData });
 
@@ -426,6 +433,16 @@ export default function AdminPage() {
                             <label className="text-xs font-bold text-slate-400 uppercase ml-2">Jelszó</label>
                             <input type="password" placeholder="•••••" value={password} onChange={e => setPassword(e.target.value)} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-700" />
                         </div>
+                            <div className="mt-4">
+                                <span className="block text-sm font-medium text-gray-700">Fájlok csatolása</span>
+                                <input
+                                    type="file"
+                                    multiple
+                                    onChange={(e) => setSelectedFiles(e.target.files)}
+                                    className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+                                />
+                            </div>
+
                             <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-xl font-bold shadow-xl shadow-indigo-500/20 active:scale-95 transition-all mt-4">Bejelentkezés</button>
                     </form>
                         {authError && (

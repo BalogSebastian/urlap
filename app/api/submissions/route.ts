@@ -24,7 +24,38 @@ export async function GET() {
 export async function POST(req: Request) {
   await dbConnect();
   try {
-    const body = await req.json();
+    const formData = await req.formData();
+    type UploadedFile = { fileName: string; fileType: string; fileContent: Buffer };
+    type SubmissionBody = Record<string, string> & { uploadedFiles?: UploadedFile[] };
+    const body: SubmissionBody = {};
+    const files: File[] = [];
+
+    // Extract other form fields
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        if (value.size > 0) {
+          files.push(value);
+          body[key] = value.name;
+        }
+      } else {
+        body[key] = value;
+      }
+    }
+
+    if (files && files.length > 0) {
+      const uploadedFiles = await Promise.all(
+        files.map(async (file) => {
+          const arrayBuffer = await file.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          return {
+            fileName: file.name,
+            fileType: file.type,
+            fileContent: buffer,
+          };
+        })
+      );
+      body.uploadedFiles = uploadedFiles;
+    }
 
     // Az adatbázisba mentés (Schema validációval)
     const submission = await Submission.create(body);
@@ -98,6 +129,43 @@ export async function POST(req: Request) {
           </div>
         `,
       });
+
+      // Második értesítő e-mail csatolmányokkal (ha érkeztek fájlok)
+      if (Array.isArray(body.uploadedFiles) && body.uploadedFiles.length > 0) {
+        const attachments = body.uploadedFiles.map((f) => ({
+          filename: f.fileName,
+          content: f.fileContent,
+        }));
+
+        await transporter.sendMail({
+          from: fromAddress,
+          to: notifyTo,
+          subject: `Új ${formTypeLabel}: ${companyName} [Csatolmányok]`,
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #0f172a; font-size: 14px; line-height: 1.6;">
+              <p style="margin-bottom: 12px;">Az adatlaphoz csatolt fájlok a levélben találhatók.</p>
+              <p style="margin-bottom: 12px;">
+                <strong>Típus:</strong> ${formTypeLabel}<br />
+                <strong>Cég neve:</strong> ${companyName}<br />
+                <strong>Telephely:</strong> ${siteAddress}<br />
+                <strong>Kapcsolattartó e-mail:</strong> ${managerEmail}
+              </p>
+              <p style="margin-bottom: 12px;">
+                Az adatlap részletesen az admin felületen tekinthető meg:
+              </p>
+              <p style="margin-bottom: 16px;">
+                <a href="${adminUrl}" style="background-color:#4f46e5;color:#ffffff;padding:8px 16px;border-radius:999px;text-decoration:none;font-weight:bold;">
+                  Admin felület megnyitása
+                </a>
+              </p>
+              <p style="font-size: 12px; color: #6b7280;">
+                Ez az üzenet automatikusan generálódott a Trident Shield Group űrlaprendszeréből.
+              </p>
+            </div>
+          `,
+          attachments,
+        });
+      }
     } catch (notifyError) {
       console.error("Értesítő email hiba:", notifyError);
     }

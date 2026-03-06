@@ -113,31 +113,17 @@ export default function FireSafetyForm({
 
         const form = e.target as HTMLFormElement;
         const formData = new FormData(form);
-        const data: any = {
-            formType: activeTab // Elküldjük, hogy melyik típusú űrlap ez
-        };
-
-        // Adatok összegzése
-        formData.forEach((value, key) => {
-            if (value instanceof File) {
-                if (value.size > 0) {
-                    data[key] = (data[key] ? data[key] + ", " : "") + `[Fájl csatolva: ${value.name}]`;
-                }
-            } else {
-                // Checkboxok összefűzése
-                if (data[key]) {
-                    data[key] = data[key] + ", " + value;
-                } else {
-                    data[key] = value;
-                }
+        formData.append("formType", activeTab);
+        for (const [key, value] of Array.from(formData.entries())) {
+            if (value instanceof File && value.size > 0 && key !== "files") {
+                formData.append("files", value);
             }
-        });
+        }
 
         try {
             const res = await fetch("/api/submissions", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: formData,
             });
 
             if (res.ok) {
@@ -1211,7 +1197,7 @@ export default function FireSafetyForm({
                                 </ul>
 
                                 <div className="space-y-2">
-                                    <input type="file" multiple className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all cursor-pointer shadow-sm" />
+                                    <input type="file" name="files" multiple className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all cursor-pointer shadow-sm" />
                                     <p className="text-xs text-blue-500 mt-3 font-medium">* A fotók feltöltése opcionális itt, emailben is pótolható.</p>
                                 </div>
                             </div>

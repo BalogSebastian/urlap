@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
     // Adatok kinyerése
     const email = formData.get('email') as string;
-    const file = formData.get('file') as File;
+    const files = formData.getAll('files') as File[];
 
     // Adatlap adatai
     const companyName = formData.get('companyName') as string;
@@ -22,13 +22,19 @@ export async function POST(req: Request) {
 
     const salutationName = formData.get('salutationName') as string;
 
-    if (!email || !file) {
+    if (!email || !files || files.length === 0) {
       return NextResponse.json({ error: 'Hiányzó adatok' }, { status: 400 });
     }
 
-    // Fájl konvertálása Buffer-ré
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Fájlok konvertálása Buffer-ré és csatolmányokká alakítása
+    const attachments = await Promise.all(files.map(async (file) => {
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        return {
+            filename: file.name,
+            content: buffer,
+        };
+    }));
 
     // SMTP Beállítás
     const transporter = nodemailer.createTransport({
@@ -70,18 +76,13 @@ export async function POST(req: Request) {
       </div>
     `;
 
-    // Levél küldése
+    // Fájlok konvertálása Buffer-ré és csatolmányokká alakítása
     await transporter.sendMail({
       from: `"${senderName}" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: `Adatlap - ${companyName}`,
       html: htmlContent,
-      attachments: [
-        {
-          filename: file.name,
-          content: buffer,
-        },
-      ],
+      attachments: attachments,
     });
 
     return NextResponse.json({ success: true });
