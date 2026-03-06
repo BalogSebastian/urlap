@@ -7,7 +7,7 @@ type FormType = (typeof ALLOWED_FORM_TYPES)[number];
 
 const INVITE_SECRET = process.env.INVITE_SECRET || "dev-invite-secret-change-me";
 const FROM_ADDRESS =
-  `Németh János <${process.env.EMAIL_USER || "sebimbalog@gmail.com"}>`;
+  `Munkavédelmiszaki <${process.env.EMAIL_USER || "sebimbalog@gmail.com"}>`;
 
 function base64UrlEncode(input: string): string {
   return Buffer.from(input, "utf8").toString("base64url");
